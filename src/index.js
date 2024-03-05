@@ -1,5 +1,5 @@
-require("dotenv").config();
-const { TOKEN, DATABASE_TOKEN } = process.env;
+require(`dotenv`).config();
+const { TOKEN } = process.env;
 const { Client, Collection, GatewayIntentBits, REST } = require("discord.js");
 const fs = require("fs");
 const { getNoichuGuildData } = require("./database/guildNoichuData");
@@ -41,6 +41,7 @@ for (const folder of fs.readdirSync("./src/functions")) {
   const functionFiles = fs.readdirSync(`./src/functions/${folder}`).filter((file) => file.endsWith(`.js`));
 
   for (const file of functionFiles) {
+    logger.log.server(`readinng path: ./functions/${folder}/${file}`);
     if (file.includes(`noichu`)) require(`./functions/${folder}/${file}`);
     else require(`./functions/${folder}/${file}`)(client);
   }
