@@ -15,7 +15,7 @@ const client = new Client({
 });
 
 logger.log.server(`Start up...`);
-logger.log.server(`Create caches...`);
+logger.log.server(`Creating caches...`);
 
 client.commands = new Collection();
 client.subcommands = new Collection();

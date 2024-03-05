@@ -271,8 +271,10 @@ module.exports = {
         .setDescription(
           `***Configuration:***
             Channel id: ${channelConfig.id}
-            Last user: ${channelConfig.lastUserId.length === 0 ? "none" : `<@${channelConfig.lastUserId}>`}
-            Last word: ${channelConfig.lastWord ? "none" : channelConfig.lastWord}
+            Last user: ${
+              channelConfig.lastUserId || channelConfig.lastUserId === null ? "none" : `<@${channelConfig.lastUserId}>`
+            }
+            Last word: ${channelConfig.lastWord || channelConfig.lastWord == null ? "none" : channelConfig.lastWord}
             Limit: ${channelConfig.limit} ${channelConfig.limit < 1 ? "(no limit)" : ""}
             Repeated: ${channelConfig.repeated === 1 ? "✅" : "❌"}
 
