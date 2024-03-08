@@ -1,6 +1,5 @@
 const { ButtonStyle, EmbedBuilder, Colors, ActionRowBuilder } = require("discord.js");
-const { removeChannel } = require("../../../functions/noichu/noichuFunction");
-const { autoBuildButton } = require("../../../utils/autoBuild");
+const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
 
 module.exports = {
   data: {
@@ -15,8 +14,9 @@ module.exports = {
    * @returns
    */
   async execute(interaction, client) {
+    const mn = new NoichuGuildManager(interaction.guildId, interaction.channelId);
     const beforeInteractionMessage = interaction.message;
-    await removeChannel(interaction, interaction.message.embeds[0].title.match(/\d+/)[0]);
+    await mn.removeChannel(interaction, interaction.message.embeds[0].title.match(/\d+/)[0]);
     await beforeInteractionMessage.delete();
   },
 };

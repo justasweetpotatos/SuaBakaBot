@@ -1,6 +1,5 @@
 const { ButtonStyle, Client, EmbedBuilder, Colors } = require("discord.js");
-const { setChannel } = require("../../../functions/noichu/noichuFunction");
-const { getNoichuChannelConfig } = require("../../../database/guildData");
+const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
 const { NoichuChannelConfig } = require("../../../typings");
 
 module.exports = {
@@ -19,7 +18,7 @@ module.exports = {
     const embedTitle = interaction.message.embeds[0]?.title;
     const channelId = embedTitle.match(/\d+/)[0];
 
-    const channelConfig = new NoichuChannelConfig({}, channelId, interaction.guildId);
+    const channelConfig = new NoichuChannelConfig(channelId, interaction.guildId);
 
     if (await channelConfig.sync()) {
       const embed = new EmbedBuilder()
@@ -32,6 +31,7 @@ module.exports = {
       return;
     }
 
-    await setChannel(interaction, channelId);
+    const mn = new NoichuGuildManager(interaction.guildId, channelId);
+    await mn.setChannel(interaction, channelId);
   },
 };

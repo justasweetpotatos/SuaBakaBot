@@ -28,7 +28,7 @@ client.unloadedSubcommands = new Collection();
 client.commandNameList = [];
 
 client.clientId = "1168430797599019022";
-client.guildIdList = [`811939594882777128`, `1084323144870940772`];
+client.guildIdList = [`1084323144870940772`];
 client.rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
 (async () => {
@@ -43,6 +43,7 @@ for (const folder of fs.readdirSync("./src/functions")) {
   for (const file of functionFiles) {
     logger.log.server(`readinng path: ./functions/${folder}/${file}`);
     if (file.includes(`noichu`)) require(`./functions/${folder}/${file}`);
+    else if (file.includes(`reactionRole`)) require(`./functions/${folder}/${file}`);
     else require(`./functions/${folder}/${file}`)(client);
   }
 }

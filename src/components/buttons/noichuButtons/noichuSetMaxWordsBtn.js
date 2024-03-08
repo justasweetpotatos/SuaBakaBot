@@ -9,8 +9,8 @@ const {
   Colors,
   EmbedBuilder,
 } = require("discord.js");
-const { setMaxWords } = require("../../../functions/noichu/noichuFunction");
-const { getNoichuChannelConfig } = require("../../../database/guildData");
+const { NoichuChannelConfig } = require("../../../typings");
+const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
 
 module.exports = {
   data: {
@@ -26,6 +26,16 @@ module.exports = {
   async execute(interaction, client) {
     const embed = interaction.message.embeds[0];
     const targetChannelId = embed.title.match(/\d+/)[0];
+
+    const channelConfig = new NoichuChannelConfig(targetChannelId, interaction.guildId);
+    if (!(await channelConfig.sync(targetChannelId))) {
+      await interaction.message.delete();
+      await interaction.reply({
+        ephemeral: true,
+        embeds: [new EmbedBuilder().setTitle(`Config has been deleted !`).setColor(Colors.Red)],
+      });
+      return;
+    }
 
     const amoutInput = new TextInputBuilder()
       .setCustomId(`amout-input`)
@@ -55,7 +65,9 @@ module.exports = {
         }, 5000);
         return;
       }
-      await setMaxWords(modalInteraction, targetChannelId, amount.valueOf());
+
+      const mn = new NoichuGuildManager(interaction.guildId, targetChannelId);
+      await mn.setMaxWords(modalInteraction, targetChannelId, amount.valueOf());
       const channelConfig = await getNoichuChannelConfig(targetChannelId);
       const newConfigEmbed = new EmbedBuilder()
         .setTitle(`Cài đặt game nối chữ kênh <#${channelConfig.id}> :`)

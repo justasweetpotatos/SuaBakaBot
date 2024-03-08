@@ -1,6 +1,5 @@
-const { Colors } = require("discord.js");
-const { runQuery } = require("../database/connection");
 const logger = require("../utils/logger");
+const { connector } = require("../database/connection");
 
 const noichuMessageTypes = {
   wrongWordMessages: 1,
@@ -16,22 +15,10 @@ String.prototype.removeCharacter = function (character) {
 class NoichuChannelConfig {
   /**
    *
-   * @param {String} id
+   * @param {String} channelId
    * @param {String} guildId
-   * @param {{id: String,
-   * max_words: Number,
-   * last_word: String,
-   * word_used_list: String,
-   * last_user_id: String,
-   * guild_id: String,
-   * repeated: Number,
-   * wrong_word_messages: String,
-   * wrong_startchar_messages: String,
-   * is_before_user_messages: String,
-   * is_repeated_word_messages: String
-   * }} rowDataFromDB
    */
-  constructor(rowDataFromDB, id, guildId) {
+  constructor(channelId, guildId) {
     // Data
     this.id = null;
     this.guildId = null;
@@ -50,98 +37,48 @@ class NoichuChannelConfig {
     this.isBeforeUserMessages = [];
     this.isRepeatedWordMessages = ["<Có thằng nối từ này rồi, chọn khác đê !>"];
 
-    if (rowDataFromDB) {
-      if (rowDataFromDB.id && rowDataFromDB.guild_id) {
-        this.id = rowDataFromDB.id;
-        this.guildId = rowDataFromDB.guild_id;
-        this.limit = rowDataFromDB.limit;
-        this.lastWord = rowDataFromDB.last_word;
-        this.wordUsedList = rowDataFromDB.word_used_list;
-        this.lastUserId = rowDataFromDB.last_user_id;
-        this.repeated = rowDataFromDB.repeated < 0 ? false : true;
-        this.wrongWordMessages = rowDataFromDB.wrong_word_messages?.split("><");
-        this.wrongStartCharMessages = rowDataFromDB.wrong_startchar_messages?.split("><");
-        this.isBeforeUserMessages = rowDataFromDB.is_before_user_messages?.split("><");
-        this.isRepeatedWordMessages = rowDataFromDB.is_repeated_word_messages?.split("><");
-        return this;
-      }
-    }
+    // guild DB name
+    this.guildDBName = `guild_`;
 
-    if (id && guildId) {
-      this.id = id;
+    if (channelId && guildId) {
+      this.id = channelId;
       this.guildId = guildId;
+      this.guildDBName += `${guildId}`;
       return this;
-    } else throw new Error(`Variable id and guildId is missing !`);
-  }
-
-  addMessage(messageType, message) {
-    switch (messageType) {
-      case 1:
-        if (!this.wrongWordMessages.includes(message)) {
-          this.wrongWordMessages.push(`<${message}>`);
-        }
-        break;
-      case 2:
-        if (!this.wrongStartCharMessages.includes(message)) {
-          this.wrongStartCharMessages.push(`<${message}>`);
-        }
-        break;
-      case 3:
-        if (!this.isBeforeUserMessages.includes(message)) {
-          this.isBeforeUserMessages.push(`<${message}>`);
-        }
-        break;
-      case 4:
-        if (!this.isRepeatedWordMessages.includes(message)) {
-          this.isRepeatedWordMessages.push(`<${message}>`);
-        }
-        break;
-    }
+    } else throw new Error(`Variable channelId and guildId is missing !`);
   }
 
   /**
    *
-   * @returns {Promise<Boolean>} Nếu trả về true, cập nhật thành công và ngược lại
+   * @param {Number} messageType
+   * @param {string} message
+   * @returns {Boolean}
    */
-  async update() {
-    try {
-      const query = `
-        INSERT INTO \`suwa-bot-guild-data\`.\`noichu_channels\`
-        (id, guild_id, last_user_id, last_word, word_used_list, \`limit\`, repeated, wrong_word_messages, wrong_startchar_messages, is_before_user_messages, is_repeated_word_messages)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        last_word = VALUES(last_word),
-        last_user_id = VALUES(last_user_id),
-        word_used_list = VALUES(word_used_list),
-        repeated = VALUES(repeated),
-        \`limit\` = VALUES(\`limit\`),
-        wrong_word_messages = VALUES(wrong_word_messages),
-        wrong_startchar_messages = VALUES(wrong_startchar_messages),
-        is_before_user_messages = VALUES(is_before_user_messages),
-        is_repeated_word_messages = VALUES(is_repeated_word_messages)
-      `;
-      const values = [
-        this.id,
-        this.guildId,
-
-        this.lastUserId,
-        this.lastWord,
-        this.wordUsedList,
-
-        this.limit,
-        this.repeated,
-
-        this.wrongWordMessages.join("///"),
-        this.wrongStartCharMessages.join("///"),
-        this.isBeforeUserMessages.join("///"),
-        this.isRepeatedWordMessages.join("///"),
-      ];
-      await runQuery(query, values);
-      return true;
-    } catch (err) {
-      logger.error(`Error in updating config of channel with id ${this.id}: ${err}`);
-      return false;
+  async addMessage(messageType, message) {
+    let valid = true;
+    switch (messageType) {
+      case 1:
+        if (!this.wrongWordMessages.includes(message)) this.wrongWordMessages.push(`<${message}>`);
+        valid = true;
+        break;
+      case 2:
+        if (!this.wrongStartCharMessages.includes(message)) this.wrongStartCharMessages.push(`<${message}>`);
+        valid = true;
+        break;
+      case 3:
+        if (!this.isBeforeUserMessages.includes(message)) this.isBeforeUserMessages.push(`<${message}>`);
+        valid = true;
+        break;
+      case 4:
+        if (!this.isRepeatedWordMessages.includes(message)) this.isRepeatedWordMessages.push(`<${message}>`);
+        valid = true;
+        break;
+      default:
+        valid = false;
+        break;
     }
+
+    if (valid) return await this.sync();
   }
 
   /**
@@ -150,12 +87,14 @@ class NoichuChannelConfig {
    */
   async sync() {
     try {
+      await connector.checkingGuildDB(this.guildId);
+
       const query = `
-          SELECT * FROM \`suwa-bot-guild-data\`.noichu_channels
-          WHERE id = ?
-        `;
+        SELECT * FROM ${this.guildDBName}.noichu_channels
+        WHERE id = ?
+      `;
       const values = [this.id];
-      const results = await runQuery(query, values);
+      const results = await connector.executeQuery(query, values);
 
       if (results.length === 0) return false;
       else {
@@ -173,7 +112,51 @@ class NoichuChannelConfig {
         return true;
       }
     } catch (err) {
-      logger.error(`Error in syncing config of channel with id ${this.id}: ${err}`);
+      logger.error(`Error on syncing config of channel with id ${this.id}: ${err}`);
+      return false;
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<Boolean>} Nếu trả về true, cập nhật thành công và ngược lại
+   */
+  async update() {
+    try {
+      const query = `
+        INSERT INTO ${this.guildDBName}.noichu_channels
+        (id, last_user_id, last_word, word_used_list, \`limit\`, repeated, wrong_word_messages, wrong_startchar_messages, is_before_user_messages, is_repeated_word_messages)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        last_word = VALUES(last_word),
+        last_user_id = VALUES(last_user_id),
+        word_used_list = VALUES(word_used_list),
+        repeated = VALUES(repeated),
+        \`limit\` = VALUES(\`limit\`),
+        wrong_word_messages = VALUES(wrong_word_messages),
+        wrong_startchar_messages = VALUES(wrong_startchar_messages),
+        is_before_user_messages = VALUES(is_before_user_messages),
+        is_repeated_word_messages = VALUES(is_repeated_word_messages)
+      `;
+      const values = [
+        this.id,
+
+        this.lastUserId,
+        this.lastWord,
+        this.wordUsedList,
+
+        this.limit,
+        this.repeated,
+
+        this.wrongWordMessages.join("///"),
+        this.wrongStartCharMessages.join("///"),
+        this.isBeforeUserMessages.join("///"),
+        this.isRepeatedWordMessages.join("///"),
+      ];
+      await connector.executeQuery(query, values);
+      return true;
+    } catch (err) {
+      logger.error(`Error in updating config of channel with id ${this.id}: ${err}`);
       return false;
     }
   }
@@ -181,11 +164,11 @@ class NoichuChannelConfig {
   async delete() {
     try {
       const query = `
-        DELETE FROM \`suwa-bot-guild-data\`.noichu_channels
+        DELETE FROM ${this.guildDBName}.noichu_channels
         WHERE id = ?
       `;
       const values = [this.id];
-      await runQuery(query, values);
+      await connector.executeQuery(query, values);
       return true;
     } catch (err) {
       logger.error(`Error in syncing config of channel with id ${this.id}: ${err}`);
@@ -199,63 +182,64 @@ class GuildConfig {
    *
    * @param {String} id
    * @param {String} name
-   * @param {Number} maxNoichuChannel
+   * @param {Number} limOfNoichuChannel
    */
-  constructor(id, name, maxNoichuChannel) {
+  constructor(id, name, limOfNoichuChannel) {
     this.id = null;
     this.name = "";
-    this.maxNoichuChannel = 1;
+    this.limOfNoichuChannel = 1;
 
     if (!id) throw new Error(`Id must not be null`);
 
     this.id = id;
     this.name = name ? name : "";
-    this.maxNoichuChannel = maxNoichuChannel ? maxNoichuChannel : 1;
+    this.limOfNoichuChannel = limOfNoichuChannel ? limOfNoichuChannel : 1;
+    this.guildDBName = `guild_${id}`;
   }
 
   async sync() {
     try {
-      const query =   `
-        SELECT * FROM \`suwa-bot-guild-data\`.guilds
-        WHERE id = ?
+      await connector.checkingGuildDB(this.id);
+
+      const query = `
+        SELECT * FROM ${this.guildDBName}.guild_info
       `;
-      const values = [this.id];
-      const results = await runQuery(query, values);
+      const results = await connector.executeQuery(query);
 
       if (results.length === 0) return false;
       else {
         this.name = results[0].name;
-        this.maxNoichuChannel = results[0].max_noichu_channel;
+        this.limOfNoichuChannel = results[0].lim_of_noichu_channel;
       }
       return true;
     } catch (err) {
-      logger.error(`Error on syncing data from DB of guild with id ${this.id}: ${err}`);
+      logger.error(`Error on syncing data from guild DB name ${this.guildDBName}: ${err}`);
       return false;
     }
   }
   /**
    * Cập nhật dữ liệu lên DB
    * @param {String} name Tên của guild
-   * @param {Number} maxNoichuChannel Số lượng tối đa channel có thể set game nối chữ
+   * @param {Number} limOfNoichuChannel Số lượng tối đa channel có thể set game nối chữ
    */
-  async update(name, maxNoichuChannel) {
+  async update(name, limOfNoichuChannel) {
     try {
       name ? (this.name = name) : "";
-      maxNoichuChannel ? (this.maxNoichuChannel = maxNoichuChannel) : "";
+      limOfNoichuChannel ? (this.limOfNoichuChannel = limOfNoichuChannel) : "";
 
       const query = `
-        INSERT INTO \`suwa-bot-guild-data\`.guilds (id, name, max_noichu_channel) 
+        INSERT INTO ${this.guildDBName}.guild_info (id, name, lim_of_noichu_channel) 
         VALUES (?, ?, ?)
         ON DUPLICATE KEY 
         UPDATE 
         name = VALUES(name),
-        max_noichu_channel = VALUES(max_noichu_channel)
+        lim_of_noichu_channel = VALUES(lim_of_noichu_channel)
       `;
-      const values = [this.id, this.name, this.maxNoichuChannel];
-      await runQuery(query, values);
+      const values = [this.id, this.name, this.limOfNoichuChannel];
+      await connector.executeQuery(query, values);
       return true;
     } catch (err) {
-      logger.error(`Error on updating data to DB of guild with id ${this.id}: ${err}`);
+      logger.error(`Error on updating data to guild DB name ${this.guildDBName}: ${err}`);
     }
   }
 }

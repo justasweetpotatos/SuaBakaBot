@@ -6,7 +6,7 @@ const {
   Colors,
 } = require("discord.js");
 const { autoBuildChannelMenu, autoBuildButton } = require("../../utils/autoBuild");
-const { configChannel } = require("../../functions/noichu/noichuFunction");
+const { NoichuGuildManager } = require("../../functions/noichu/noichuFunction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -30,10 +30,13 @@ module.exports = {
         .setTitle(`Cài đặt game nối chữ !`)
         .setDescription(`*Chọn một kênh để bắt đầu !*`)
         .setColor(Colors.Blurple);
-      const closeButton = autoBuildButton(client.buttons.get(`noichu-close-message-btn`));
+      const closeButton = autoBuildButton(client.buttons.get(`noichu-close-message-btn`).data);
       actionRow2.addComponents([closeButton]);
 
       await interaction.editReply({ embeds: [embed], components: [actionRow1, actionRow2] });
-    } else await configChannel(interaction, targetChannel.id, client);
+    } else {
+      const manager = new NoichuGuildManager(targetChannel.id);
+      await manager.configChannel(interaction, targetChannel.id, client);
+    }
   },
 };

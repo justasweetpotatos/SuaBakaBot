@@ -1,14 +1,6 @@
-const {
-  ButtonStyle,
-  EmbedBuilder,
-  Colors,
-  ActionRowBuilder,
-  ButtonInteraction,
-  Client,
-  EmbedAssertions,
-} = require("discord.js");
+const { ButtonStyle, EmbedBuilder, Colors, ActionRowBuilder, ButtonInteraction, Client } = require("discord.js");
 const { autoBuildButton } = require("../../../utils/autoBuild");
-const { getNoichuChannelConfig } = require("../../../database/guildData");
+const { NoichuChannelConfig } = require("../../../typings");
 
 module.exports = {
   data: {
@@ -24,7 +16,9 @@ module.exports = {
   async execute(interaction, client) {
     const targetChannelId = interaction.message.embeds[0].title.match(/\d+/)[0];
 
-    if (!(await getNoichuChannelConfig(targetChannelId))) {
+    const config = new NoichuChannelConfig(targetChannelId, interaction.guildId);
+
+    if (!(await config.sync(targetChannelId))) {
       await interaction.message.delete();
       await interaction.reply({
         ephemeral: true,

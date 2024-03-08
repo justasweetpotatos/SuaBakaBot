@@ -1,6 +1,5 @@
-const { connection, runQuery } = require("./connection");
+const { connector } = require("./connection");
 const logger = require("../utils/logger");
-const { databaseTables } = require("./const");
 
 module.exports = {
   /**
@@ -16,7 +15,7 @@ module.exports = {
 
     const values = [guildId, guildName];
 
-    await runQuery(query, values);
+    await connector.executeQuery(query, values);
   },
   /**
    *
@@ -31,7 +30,7 @@ module.exports = {
     WHERE \`suwa-bot-guild-data\`.guilds.id = '${guildId}'
     `;
 
-    return await runQuery(selectQuery);
+    return await connector.executeQuery(selectQuery);
   },
   /**
    *
@@ -44,7 +43,7 @@ module.exports = {
     WHERE \`suwa-bot-guild-data\`.guilds.id = '${guildId}'
     `;
 
-    return await runQuery(selectQuery);
+    return await connector.executeQuery(selectQuery);
   },
 
   /**
@@ -55,7 +54,7 @@ module.exports = {
     const query = `DELETE FROM \`suwa-bot-guild-data\`.\`noichu_channels\` WHERE (\`id\` = ?);`;
     const values = [channelId];
 
-    await runQuery(query, values);
+    await connector.executeQuery(query, values);
   },
   /**
    *
@@ -86,7 +85,7 @@ module.exports = {
           channel.max_create ? channel.max_create : 1,
         ];
 
-        await runQuery(query, values);
+        await connector.executeQuery(query, values);
       });
     } catch (error) {}
   },

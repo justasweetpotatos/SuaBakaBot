@@ -1,6 +1,6 @@
-const { ButtonStyle, ButtonInteraction, EmbedBuilder, Embed, Colors } = require("discord.js");
-const { getNoichuChannelConfig } = require("../../../database/guildData");
-const { setRepeated } = require("../../../functions/noichu/noichuFunction");
+const { ButtonStyle, ButtonInteraction, EmbedBuilder, Colors } = require("discord.js");
+const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
+const { NoichuChannelConfig } = require("../../../typings");
 
 module.exports = {
   data: {
@@ -13,22 +13,27 @@ module.exports = {
    * @param {Client} client
    */
   async execute(interaction, client) {
-    const configMessage = interaction.message;
-    const targetChannelId = configMessage.embeds[0].title.match(/\d+/)[0];
-    let channelConfig = await getNoichuChannelConfig(targetChannelId);
-    if (!channelConfig) {
-      await configMessage.delete();
+    const targetChannelId = interaction.message.embeds[0].title.match(/\d+/)[0];
+
+    const channelConfig = new NoichuChannelConfig(targetChannelId, interaction.guildId);
+
+    if (!(await channelConfig.sync())) {
+      await interaction.message.delete();
+      await interaction.reply({
+        ephemeral: true,
+        embeds: [new EmbedBuilder().setTitle(`Config has been deleted !`).setColor(Colors.Red)],
+      });
+      return;
     } else {
       await setRepeated(interaction, targetChannelId);
-      channelConfig = await getNoichuChannelConfig(targetChannelId);
       const newConfigEmbed = new EmbedBuilder()
         .setTitle(`Cài đặt game nối chữ kênh <#${channelConfig.id}> :`)
         .setDescription(
           `***Configuration:***
             Channel id: ${channelConfig.id}
-            Last user: ${channelConfig.last_user_id.length === 0 ? "none" : `<@${channelConfig.last_user_id}>`}
-            Last word: ${channelConfig.last_word ? "none" : channelConfig.last_word}
-            Max words: ${channelConfig.max_words}
+            Last user: ${channelConfig.lastUserId.length === 0 ? "none" : `<@${channelConfig.lastUserId}>`}
+            Last word: ${channelConfig.lastWord ? "none" : channelConfig.lastWord}
+            Max words: ${channelConfig.limit}
             Repeated: ${channelConfig.repeated === 1 ? "✅" : "❌"}
 
             ***Hướng dẫn:***

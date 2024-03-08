@@ -1,7 +1,6 @@
 const { EmbedBuilder, Events, Colors, Message, Collection } = require("discord.js");
 const logger = require("../../utils/logger");
-const { getGuildConfig } = require("../../database/guildData");
-const { NoichuChannelConfig } = require("../../typings");
+const { NoichuChannelConfig, GuildConfig } = require("../../typings");
 
 class Lock {
   constructor() {
@@ -178,7 +177,7 @@ module.exports = {
       if (message.author.bot) return;
 
       const authorId = message.author.id;
-      const guildId = message.guildId;
+      const guildId = message.channel.guildId;
       const channelId = message.channelId;
 
       if (message.content.includes(`#uselessfact`)) {
@@ -199,10 +198,10 @@ module.exports = {
         return;
       }
 
-      let guildConfig = await getGuildConfig(guildId);
-      if (!guildConfig) return;
+      let guildConfig = new GuildConfig(message.guildId, message.guild.name);
+      if (!(await guildConfig.sync())) await guildConfig.update();
 
-      const channelConfig = new NoichuChannelConfig({}, channelId, guildId);
+      const channelConfig = new NoichuChannelConfig(channelId, guildId);
       if (!(await channelConfig.sync())) return;
 
       if (channelConfig) {
