@@ -3,6 +3,8 @@ const logger = require("../../utils/logger");
 
 module.exports = (client) => {
   client.handleComponents = async () => {
+    logger.log.component(`Handling commands progress...`);
+
     const typeOfComponentNameList = readdirSync("./src/components");
     for (const typeOfComponentName of typeOfComponentNameList) {
       const listPackName = readdirSync(`./src/components/${typeOfComponentName}`);

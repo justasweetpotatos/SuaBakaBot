@@ -1,6 +1,5 @@
 const { EmbedBuilder, Colors, ActionRowBuilder, Client, Guild } = require("discord.js");
 const { NoichuChannelConfig, GuildConfig } = require(`../../typings/index`);
-const { getNumberOfNoichuChannelInGuild } = require("../../database/guildData");
 const { autoBuildButton } = require("../../utils/autoBuild");
 
 class NoichuGuildManager {
@@ -44,7 +43,7 @@ class NoichuGuildManager {
     if (!(await guildConfig.sync())) {
       if (!(await guildConfig.update())) throw new Error(`Error on registing guild with id ${interaction.guild.id}`);
     } else {
-      const count = await getNumberOfNoichuChannelInGuild(interaction.guild.id);
+      const count = await guildConfig.getNumberOfNoichuChannelInGuild();
       if (count >= guildConfig.limOfNoichuChannel) {
         const embed = new EmbedBuilder()
           .setTitle(`Đã đạt giới hạn set kênh nối chữ !`)
@@ -142,14 +141,14 @@ class NoichuGuildManager {
       return;
     }
 
-    const embed = new EmbedBuilder()
-      .setTitle(`Thao tác thành công !`)
-      .setColor(Colors.Green)
-      .setDescription(`*Đã đặt giới hạn từ:*\n*\`${channelConfig.max_words}\` to \`${amount}\`*`);
-
+    const oldLimmit = channelConfig.limit;
     channelConfig.limit = amount;
     await channelConfig.update();
 
+    const embed = new EmbedBuilder()
+      .setTitle(`Thao tác thành công !`)
+      .setColor(Colors.Green)
+      .setDescription(`*Đã đặt giới hạn từ:*\n*\`${oldLimmit}\` to \`${channelConfig.limit}\`*`);
     await interaction.editReply({ embeds: [embed] });
     setTimeout(async () => {
       await deferedReply.delete();
@@ -280,27 +279,7 @@ class NoichuGuildManager {
       const closeButton = autoBuildButton(client.buttons.get(`noichu-close-message-btn`).data);
       const actionRow = new ActionRowBuilder().addComponents([removeButton, setMaxWordsButton, setRepeat, closeButton]);
 
-      const embed = new EmbedBuilder()
-        .setTitle(`Cài đặt game nối chữ kênh <#${channelConfig.id}> :`)
-        .setDescription(
-          `***Configuration:***
-            Channel id: ${channelConfig.id}
-            Last user: ${
-              channelConfig.lastUserId || channelConfig.lastUserId === null ? "none" : `<@${channelConfig.lastUserId}>`
-            }
-            Last word: ${channelConfig.lastWord || channelConfig.lastWord == null ? "none" : channelConfig.lastWord}
-            Limit: ${channelConfig.limit} ${channelConfig.limit < 1 ? "(no limit)" : ""}
-            Repeated: ${channelConfig.repeated === 1 ? "✅" : "❌"}
-
-            ***Hướng dẫn:***
-            \`Remove\`: Xóa config nối chữ của kênh !
-            \`Set Max\`: Set giới hạn từ trước khi reset game !
-            \`Set Repeated\`: Cho phép lặp hoặc không ! 
-            `
-        )
-        .setColor(Colors.Blurple);
-
-      await interaction.editReply({ embeds: [embed], components: [actionRow] });
+      await interaction.editReply({ embeds: [channelConfig.createConfigEmbed()], components: [actionRow] });
     }
   }
 

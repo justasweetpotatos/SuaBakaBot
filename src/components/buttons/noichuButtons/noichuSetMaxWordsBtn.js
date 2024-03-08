@@ -66,28 +66,9 @@ module.exports = {
         return;
       }
 
-      const mn = new NoichuGuildManager(interaction.guildId, targetChannelId);
-      await mn.setMaxWords(modalInteraction, targetChannelId, amount.valueOf());
-      const channelConfig = await getNoichuChannelConfig(targetChannelId);
-      const newConfigEmbed = new EmbedBuilder()
-        .setTitle(`Cài đặt game nối chữ kênh <#${channelConfig.id}> :`)
-        .setDescription(
-          `***Configuration:***
-            Channel id: ${channelConfig.id}
-            Last user: ${channelConfig.last_user_id.length === 0 ? "none" : `<@${channelConfig.last_user_id}>`}
-            Last word: ${channelConfig.last_word ? "none" : channelConfig.last_word}
-            Max words: ${channelConfig.max_words}
-            Repeated: ${channelConfig.repeated === 1 ? "✅" : "❌"}
-
-            ***Hướng dẫn:***
-            \`Remove\`: Xóa config nối chữ của kênh !
-            \`Set Max\`: Set giới hạn từ trước khi reset game !
-            \`Set Repeated\`: Cho phép lặp hoặc không ! 
-            `
-        )
-        .setColor(Colors.Blurple);
-
-      await interaction.editReply({ embeds: [newConfigEmbed] });
+      await new NoichuGuildManager().setMaxWords(modalInteraction, targetChannelId, amount.valueOf());
+      await channelConfig.sync();
+      await interaction.editReply({ embeds: [channelConfig.createConfigEmbed()] });
     });
   },
 };

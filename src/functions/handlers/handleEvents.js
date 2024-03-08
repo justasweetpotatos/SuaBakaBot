@@ -3,6 +3,8 @@ const logger = require("../../utils/logger");
 
 module.exports = (client) => {
   client.handleEvents = async () => {
+    logger.log.eventRegiter(`Handling events progress...`);
+
     const eventFolders = fs.readdirSync("./src/events");
     for (const folder of eventFolders) {
       const eventFiles = fs.readdirSync(`./src/events/${folder}`).filter((file) => file.endsWith(".js"));

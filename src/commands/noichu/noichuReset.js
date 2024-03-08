@@ -1,5 +1,5 @@
 const { SlashCommandSubcommandBuilder, SlashCommandChannelOption } = require("discord.js");
-const { reset } = require("../../functions/noichu/noichuFunction");
+const { reset, NoichuGuildManager } = require("../../functions/noichu/noichuFunction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -12,6 +12,6 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction, client) {
-    await reset(interaction, interaction.options.get(`channel`).value);
+    await new NoichuGuildManager().reset(interaction, interaction.options.get(`channel`).value);
   },
 };

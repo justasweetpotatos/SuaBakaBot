@@ -31,7 +31,6 @@ module.exports = {
       return;
     }
 
-    const mn = new NoichuGuildManager(interaction.guildId, channelId);
-    await mn.setChannel(interaction, channelId);
+    await new NoichuGuildManager().setChannel(interaction, channelId);
   },
 };

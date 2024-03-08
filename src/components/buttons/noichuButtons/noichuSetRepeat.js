@@ -25,25 +25,9 @@ module.exports = {
       });
       return;
     } else {
-      await setRepeated(interaction, targetChannelId);
-      const newConfigEmbed = new EmbedBuilder()
-        .setTitle(`Cài đặt game nối chữ kênh <#${channelConfig.id}> :`)
-        .setDescription(
-          `***Configuration:***
-            Channel id: ${channelConfig.id}
-            Last user: ${channelConfig.lastUserId.length === 0 ? "none" : `<@${channelConfig.lastUserId}>`}
-            Last word: ${channelConfig.lastWord ? "none" : channelConfig.lastWord}
-            Max words: ${channelConfig.limit}
-            Repeated: ${channelConfig.repeated === 1 ? "✅" : "❌"}
-
-            ***Hướng dẫn:***
-            \`Remove\`: Xóa config nối chữ của kênh !
-            \`Set Max\`: Set giới hạn từ trước khi reset game !
-            \`Set Repeated\`: Cho phép lặp hoặc không ! 
-            `
-        )
-        .setColor(Colors.Blurple);
-      await configMessage.edit({ embeds: [newConfigEmbed] });
+      await new NoichuGuildManager().setRepeated(interaction, targetChannelId);
+      await channelConfig.sync();
+      await interaction.message.edit({ embeds: [channelConfig.createConfigEmbed()] });
     }
   },
 };

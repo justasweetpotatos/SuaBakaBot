@@ -10,6 +10,7 @@ const { registCommands } = require("../../registry/commandRegister.js");
  */
 module.exports = async (client) => {
   client.handleCommands = async () => {
+    logger.log.command(`Handling commands progress...`);
     try {
       const commandFolders = await fs.readdir(path.join(__dirname, "../../commands/"));
 

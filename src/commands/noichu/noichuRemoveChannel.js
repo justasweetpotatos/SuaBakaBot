@@ -1,6 +1,6 @@
 const { SlashCommandSubcommandBuilder, SlashCommandChannelOption, EmbedBuilder, Colors, Embed } = require("discord.js");
 
-const { removeChannel } = require(`../../functions/noichu/noichuFunction`);
+const { removeChannel, NoichuGuildManager } = require(`../../functions/noichu/noichuFunction`);
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -11,6 +11,6 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction, client) {
-    await removeChannel(interaction, interaction.channelId);
+    await new NoichuGuildManager().removeChannel(interaction, interaction.channelId);
   },
 };

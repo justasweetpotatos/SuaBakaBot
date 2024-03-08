@@ -5,7 +5,7 @@ const {
   SlashCommandChannelOption,
   Client,
 } = require("discord.js");
-const { setMaxWords } = require(`../../functions/noichu/noichuFunction`);
+const { setMaxWords, NoichuGuildManager } = require(`../../functions/noichu/noichuFunction`);
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -21,6 +21,10 @@ module.exports = {
    * @param {Client} client
    */
   async execute(interaction, client) {
-    await setMaxWords(interaction, interaction.options.get(`channel`).value, interaction.options.get(`amount`).value);
+    await NoichuGuildManager().setMaxWords(
+      interaction,
+      interaction.options.get(`channel`).value,
+      interaction.options.get(`amount`).value
+    );
   },
 };

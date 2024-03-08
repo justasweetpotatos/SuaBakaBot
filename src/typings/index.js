@@ -1,5 +1,6 @@
 const logger = require("../utils/logger");
 const { connector } = require("../database/connection");
+const { EmbedBuilder, Colors, Embed } = require("discord.js");
 
 const noichuMessageTypes = {
   wrongWordMessages: 1,
@@ -108,7 +109,6 @@ class NoichuChannelConfig {
         this.wrongStartCharMessages = config.wrong_startchar_messages?.split("///");
         this.isBeforeUserMessages = config.is_before_user_messages?.split("///");
         this.isRepeatedWordMessages = config.is_repeated_word_messages?.split("///");
-
         return true;
       }
     } catch (err) {
@@ -161,6 +161,10 @@ class NoichuChannelConfig {
     }
   }
 
+  /**
+   *
+   * @returns {Promise<boolean>}
+   */
   async delete() {
     try {
       const query = `
@@ -171,9 +175,33 @@ class NoichuChannelConfig {
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
-      logger.error(`Error in syncing config of channel with id ${this.id}: ${err}`);
+      logger.error(`Error in deleting config of channel with id ${this.id}: ${err}`);
       return false;
     }
+  }
+
+  /**
+   *
+   * @returns {Promise<Embed>}
+   */
+  createConfigEmbed() {
+    return new EmbedBuilder()
+      .setTitle(`Cài đặt game nối chữ kênh <#${this.id}> :`)
+      .setDescription(
+        `***Configuration:***
+            Channel id: ${this.id}
+            Last user: ${this.lastUserId.length === 0 ? "none" : `<@${this.lastUserId}>`}
+            Last word: ${this.lastWord ? this.lastWord : "none"}
+            Max words: ${this.limit}
+            Repeated: ${this.repeated === 1 ? "✅" : "❌"}
+
+            ***Hướng dẫn:***
+            \`Remove\`: Xóa config nối chữ của kênh !
+            \`Set Max\`: Set giới hạn từ trước khi reset game !
+            \`Set Repeated\`: Cho phép lặp hoặc không ! 
+        `
+      )
+      .setColor(Colors.Blurple);
   }
 }
 
@@ -195,6 +223,17 @@ class GuildConfig {
     this.name = name ? name : "";
     this.limOfNoichuChannel = limOfNoichuChannel ? limOfNoichuChannel : 1;
     this.guildDBName = `guild_${id}`;
+  }
+
+  async getNumberOfNoichuChannelInGuild() {
+    try {
+      await this.sync();
+
+      const query = `SELECT COUNT(*) AS \`count\` FROM ${this.guildDBName}.noichu_channels;`;
+      return await connector.executeQuery(query)[0]?.count;
+    } catch (error) {
+      logger.error(`Error on getting number of noichu channel in guild with id ${this.id}: ${error}`);
+    }
   }
 
   async sync() {

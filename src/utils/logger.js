@@ -27,6 +27,26 @@ const logger = {
   error: function (message) {
     console.error(`[${getTimestamp()}] [ERROR] ${message}`);
   },
+  errors: {
+    server: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [SERVER] ${message}`);
+    },
+    guild: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [GUILD] ${message}`);
+    },
+    command: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [COMMAND] ${message}`);
+    },
+    database: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [DATABASE] ${message}`);
+    },
+    eventRegiter: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [EVENT-REGISTER] ${message}`);
+    },
+    component: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [COMPONENT] ${message}`);
+    },
+  },
   warn: function (message) {
     console.warn(`[${getTimestamp()}] [WARN] ${message}`);
   },

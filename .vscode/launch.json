@@ -1,0 +1,14 @@
+{
+  "version": "0.3.0",
+  "configurations": [
+    {
+      "command": "npm start",
+      "name": "cd",
+      "request": "launch",
+      "type": "node-terminal"
+    }
+  ],
+  "scripts": {
+    "start": "npm index.js"
+  }
+}

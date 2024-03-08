@@ -14,9 +14,7 @@ module.exports = {
    * @returns
    */
   async execute(interaction, client) {
-    const mn = new NoichuGuildManager(interaction.guildId, interaction.channelId);
-    const beforeInteractionMessage = interaction.message;
-    await mn.removeChannel(interaction, interaction.message.embeds[0].title.match(/\d+/)[0]);
-    await beforeInteractionMessage.delete();
+    await new NoichuGuildManager().removeChannel(interaction, interaction.message.embeds[0].title.match(/\d+/)[0]);
+    await interaction.message.delete();
   },
 };

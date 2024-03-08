@@ -13,6 +13,7 @@ module.exports = {
     .setName("config")
     .setDescription("Configuration nối chữ game !")
     .addChannelOption(new SlashCommandChannelOption().setName(`channel`).setDescription(`Chọn kênh để cài đặt.`)),
+
   /**
    * @param {import('discord.js').CommandInteraction} interaction
    * @param {import('discord.js').Client} client
@@ -21,8 +22,9 @@ module.exports = {
     await interaction.deferReply({ ephemeram: false });
 
     const targetChannel = interaction.options.get(`channel`);
+
     if (!targetChannel) {
-      const selectChannelMenu = autoBuildChannelMenu(client.selectMenus.get(`noichu-exist-channel-selector`).data);
+      const selectChannelMenu = autoBuildChannelMenu(client.selectMenus.get(`noichu-channel-selector`).data);
 
       const actionRow1 = new ActionRowBuilder().addComponents(selectChannelMenu);
       const actionRow2 = new ActionRowBuilder();
@@ -34,9 +36,9 @@ module.exports = {
       actionRow2.addComponents([closeButton]);
 
       await interaction.editReply({ embeds: [embed], components: [actionRow1, actionRow2] });
-    } else {
-      const manager = new NoichuGuildManager(targetChannel.id);
-      await manager.configChannel(interaction, targetChannel.id, client);
+      return;
     }
+
+    await new NoichuGuildManager().configChannel(interaction, targetChannel.id, client);
   },
 };

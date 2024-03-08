@@ -49,7 +49,6 @@ for (const folder of fs.readdirSync("./src/functions")) {
 }
 logger.log.server(`All caches created !`);
 
-logger.log.server(`Handling progress...`);
 client.handleEvents();
 client.handleCommands();
 client.handleComponents();
