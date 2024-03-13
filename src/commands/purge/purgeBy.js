@@ -6,7 +6,7 @@ const {
   EmbedBuilder,
   Colors,
 } = require("discord.js");
-const { findMessages } = require("../../utils/purge/messageFinder");
+const { findMessages } = require("../../functions/purge/messageFinder");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()

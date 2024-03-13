@@ -9,9 +9,22 @@ const {
 module.exports = {
   autoBuildButton(data) {
     const button = new ButtonBuilder().setCustomId(data.customId).setLabel(data.label).setStyle(data.buttonStyle);
-    data.emoji ? button.setEmoji(data.emoji) : "";
-    data.disabled ? button.setEmoji(data.disabled) : "";
-    data.url ? button.setURL(data.url) : "";
+
+    // Kiểm tra và đặt emoji nếu có
+    if (data.emoji && typeof data.emoji === "string") {
+      button.setEmoji(data.emoji);
+    }
+
+    // Kiểm tra và đặt trạng thái disabled nếu có
+    if (typeof data.disabled === "boolean") {
+      button.setDisabled(data.disabled);
+    }
+
+    // Kiểm tra và đặt URL nếu có
+    if (data.url && typeof data.url === "string") {
+      button.setURL(data.url);
+    }
+
     return button;
   },
   autoBuildStringMenu(data) {

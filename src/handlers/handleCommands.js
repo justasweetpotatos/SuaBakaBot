@@ -1,9 +1,8 @@
 const fs = require("fs").promises;
 const path = require("path");
-const logger = require("../../utils/logger");
 const { SlashCommandBuilder, SlashCommandSubcommandBuilder } = require("discord.js");
-
-const { registCommands } = require("../../registry/commandRegister.js");
+const { registCommands } = require("../registry/commandRegister.js");
+const logger = require("../utils/logger.js");
 
 /**
  * @param {import('discord.js').Client} client
@@ -12,15 +11,15 @@ module.exports = async (client) => {
   client.handleCommands = async () => {
     logger.log.command(`Handling commands progress...`);
     try {
-      const commandFolders = await fs.readdir(path.join(__dirname, "../../commands/"));
+      const commandFolders = await fs.readdir(path.join(__dirname, "../commands/"));
 
       for (const folder of commandFolders) {
-        const commandFiles = await fs.readdir(path.join(__dirname, `../../commands/${folder}`));
+        const commandFiles = await fs.readdir(path.join(__dirname, `../commands/${folder}`));
 
         for (const file of commandFiles) {
           if (!file.endsWith(".js")) continue;
 
-          const commandPath = path.join(__dirname, `../../commands/${folder}/${file}`);
+          const commandPath = path.join(__dirname, `../commands/${folder}/${file}`);
           const command = require(commandPath);
 
           if (command.data instanceof SlashCommandBuilder) {

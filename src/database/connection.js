@@ -41,11 +41,11 @@ class Connector {
    * @returns {Promise<void>}
    */
   async createGuildDB(guildId) {
+    const guildDBName = `guild_${guildId}`;
     try {
       // Tạo mới DB
-      const guildDBName = `guild_${guildId}`;
       const createDatabaseQuery = `CREATE DATABASE IF NOT EXISTS ${guildDBName}`;
-      await this.adminConnection.query(createDatabaseQuery);
+      this.adminConnection.query(createDatabaseQuery);
 
       // Tạo các bảng cần thiết
       const tableQueries = [
@@ -53,6 +53,15 @@ class Connector {
         `CREATE TABLE IF NOT EXISTS ${guildDBName}.noichu_channels LIKE guild_template.noichu_channels;`,
         `CREATE TABLE IF NOT EXISTS ${guildDBName}.reaction_buttons LIKE guild_template.reaction_buttons;`,
         `CREATE TABLE IF NOT EXISTS ${guildDBName}.reaction_emojis LIKE guild_template.reaction_emojis;`,
+        `CREATE TABLE IF NOT EXISTS ${guildDBName}.confession_channels LIKE guild_template.confession_channels;`,
+        `CREATE TABLE IF NOT EXISTS ${guildDBName}.confession_posts LIKE guild_template.confession_posts;`,
+        `ALTER TABLE ${guildDBName}.confession_posts 
+         ADD CONSTRAINT channel_id
+          FOREIGN KEY (channel_id)
+          REFERENCES ${guildDBName}.confession_channels (id)
+          ON DELETE NO ACTION
+          ON UPDATE NO ACTION;
+        `,
       ];
 
       for (const query of tableQueries) {

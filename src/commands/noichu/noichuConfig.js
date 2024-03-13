@@ -4,6 +4,7 @@ const {
   SlashCommandSubcommandBuilder,
   SlashCommandChannelOption,
   Colors,
+  ChannelType,
 } = require("discord.js");
 const { autoBuildChannelMenu, autoBuildButton } = require("../../utils/autoBuild");
 const { NoichuGuildManager } = require("../../functions/noichu/noichuFunction");
@@ -12,7 +13,12 @@ module.exports = {
   data: new SlashCommandSubcommandBuilder()
     .setName("config")
     .setDescription("Configuration nối chữ game !")
-    .addChannelOption(new SlashCommandChannelOption().setName(`channel`).setDescription(`Chọn kênh để cài đặt.`)),
+    .addChannelOption(
+      new SlashCommandChannelOption()
+        .setName(`channel`)
+        .setDescription(`Chọn kênh để cài đặt.`)
+        .addChannelTypes(ChannelType.GuildText)
+    ),
 
   /**
    * @param {import('discord.js').CommandInteraction} interaction

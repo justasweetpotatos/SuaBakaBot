@@ -1,5 +1,5 @@
 const fs = require("fs");
-const logger = require("../../utils/logger");
+const logger = require("../utils/logger");
 
 module.exports = (client) => {
   client.handleEvents = async () => {
@@ -12,7 +12,7 @@ module.exports = (client) => {
       switch (folder) {
         case "client":
           for (const file of eventFiles) {
-            const event = require(`../../events/${folder}/${file}`);
+            const event = require(`../events/${folder}/${file}`);
             if (event.once) {
               client.once(event.name, (...args) => event.execute(...args, client));
               logger.log.eventRegiter(`Event "${event.name}" loaded successfully.`);
@@ -23,7 +23,7 @@ module.exports = (client) => {
           break;
         case "noichu":
           for (const file of eventFiles) {
-            const event = require(`../../events/${folder}/${file}`);
+            const event = require(`../events/${folder}/${file}`);
             if (event.name && event.execute) {
               if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
               else client.on(event.name, (...args) => event.execute(...args, client));
@@ -34,7 +34,7 @@ module.exports = (client) => {
           break;
         case "prefixCommands":
           for (const file of eventFiles) {
-            const event = require(`../../events/${folder}/${file}`);
+            const event = require(`../events/${folder}/${file}`);
 
             if (event.name && event.execute) {
               if (event.once) client.once(event.name, (...args) => event.execute(...args, client));

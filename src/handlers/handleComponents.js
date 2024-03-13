@@ -1,5 +1,5 @@
 const { readdirSync } = require("fs");
-const logger = require("../../utils/logger");
+const logger = require("../utils/logger");
 
 module.exports = (client) => {
   client.handleComponents = async () => {
@@ -13,14 +13,14 @@ module.exports = (client) => {
         switch (typeOfComponentName) {
           case "buttons":
             for (const file of listFileName) {
-              const button = require(`../../components/${typeOfComponentName}/${packName}/${file}`);
+              const button = require(`../components/${typeOfComponentName}/${packName}/${file}`);
               client.buttons.set(button.data.customId, button);
               logger.log.component(`Button "${button.data.label}" has passed handler !`);
             }
             break;
           case "selectMenus":
             for (const file of listFileName) {
-              const menu = require(`../../components/${typeOfComponentName}/${packName}/${file}`);
+              const menu = require(`../components/${typeOfComponentName}/${packName}/${file}`);
               client.selectMenus.set(menu.data.customId, menu);
               logger.log.component(`Menu "${menu.data.customId}" has passed handler !`);
             }
