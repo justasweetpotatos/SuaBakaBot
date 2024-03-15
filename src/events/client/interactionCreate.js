@@ -18,7 +18,9 @@ module.exports = {
       try {
         if (command.data.name === "command" && interaction.user.id !== "866628870123552798") {
           await interaction.reply({
-            embeds: [new EmbedBuilder().setTitle(`Bạn không phải người điểu hành bot !`).setColor(Colors.Red)],
+            embeds: [
+              new EmbedBuilder().setTitle(`Bạn không phải người điểu hành bot !`).setColor(Colors.Red),
+            ],
             ephemeral: true,
           });
           return;
@@ -31,17 +33,21 @@ module.exports = {
         }
       } catch (error) {
         console.error(error);
-        if (interaction.deferred) {
-          await interaction.editReply({
-            embeds: [
-              new EmbedBuilder().setTitle(`Lỗi rồi ;-;, hãy báo lại với admin của bot nha !`).setColor(`#fc3728`),
-            ],
-          });
-          return;
-        }
-        await interaction.reply({
-          embeds: [new EmbedBuilder().setTitle(`Lỗi rồi ;-;, hãy báo lại với admin của bot nha !`).setColor(`#fc3728`)],
-        });
+        interaction.deferred
+          ? await interaction.editReply({
+              embeds: [
+                new EmbedBuilder()
+                  .setTitle(`Lỗi rồi ;-;, hãy báo lại với admin của bot nha !`)
+                  .setColor(`#fc3728`),
+              ],
+            })
+          : await interaction.reply({
+              embeds: [
+                new EmbedBuilder()
+                  .setTitle(`Lỗi rồi ;-;, hãy báo lại với admin của bot nha !`)
+                  .setColor(`#fc3728`),
+              ],
+            });
       }
     } else if (interaction.isButton()) {
       const { customId } = interaction;

@@ -8,7 +8,7 @@ const {
   ActionRowBuilder,
 } = require("discord.js");
 const logger = require("../../../utils/logger");
-const { ConfessionPost } = require("../../../functions/confessionSystem/Confession");
+const { ConfessionPost } = require("../../../functions/confessionSystem/ConfessionFunction");
 const { GuildGlobalConfig } = require("../../../functions/guildConfig/guildGlobalConfig");
 const { autoBuildButton } = require("../../../utils/autoBuild");
 

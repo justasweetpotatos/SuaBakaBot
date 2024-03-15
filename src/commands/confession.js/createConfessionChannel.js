@@ -10,7 +10,7 @@ const {
   ForumChannel,
 } = require("discord.js");
 const logger = require("../../utils/logger");
-const { ConfesisonPostChannelManager } = require("../../functions/confessionSystem/Confession");
+const { ConfesisonPostChannelManager } = require("../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()

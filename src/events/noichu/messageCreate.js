@@ -1,6 +1,6 @@
-const { EmbedBuilder, Events, Colors, Message, Collection } = require("discord.js");
+const { Message } = require("discord.js");
 const logger = require("../../utils/logger");
-const { NoichuChannelConfig, GuildConfig } = require("../../typings");
+const { NoichuChecker, NoituChecker } = require("../../functions/noichu/noichuFunction");
 
 class Lock {
   constructor() {
@@ -21,150 +21,6 @@ class Lock {
 
 const lock = new Lock();
 
-/**
- * @param {Number} min
- * @param {Number} max
- * @returns {Number}
- * Return ramdom number from min to max
- */
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min)) + min;
-}
-
-/**
- *
- * @param {Message} messageTarget
- * @param {String} content
- */
-async function noiChuError(messageTarget, content) {
-  const embed = new EmbedBuilder().setTitle(`${content}`).setColor(`#fff700`);
-  await messageTarget.react("❌");
-  let repliedMessage = await messageTarget.reply({
-    embeds: [embed],
-  });
-  setTimeout(async () => {
-    await repliedMessage.delete();
-  }, 5000);
-}
-
-/**
- *
- * @param {NoichuChannelConfig} channelConfig
- * @param {String} word
- * @param {Message} message
- * @returns
- */
-async function checkWord(channelConfig, word, message) {
-  const dict = require("./noichuDictionary.json");
-  const cache = require("./noichuCache.json");
-
-  // let valid = false;
-
-  // const getUrlApi =
-  //   "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=dict.1.1.20240229T151739Z.795a73578ee9b39a.2538ef901579851768ac9ad05c332575496b1343&lang=en-fr&text=" +
-  //   word;
-  // await fetch(getUrlApi).then(async (response) => {
-  //   const data = await response.json();
-  //   if (response.ok) {
-  //     data.def.length !== 0 ? (valid = true) : "";
-  //   }
-  // });
-
-  if (!dict[word]) {
-    const messages = channelConfig.wrongWordMessages;
-    await noiChuError(message, messages.at(getRandomInt(0, 2)));
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Kiểm tra xem người dùng đã nối từ trước đó hay chưa
- * @param {String} authorId
- * @param {NoichuChannelConfig} channelConfig
- * @param {String} word
- * @param {Message} message
- * @returns {Promise<Boolean>}
- */
-async function checkLastUser(authorId, channelConfig, word, message) {
-  const messages = channelConfig.isBeforeUserMessages;
-
-  if (channelConfig.lastUserId) {
-    if (channelConfig.lastUserId === authorId) {
-      await noiChuError(message, messages.at(getRandomInt(0, 3)));
-      return false;
-    }
-  } else return await checkWord(word, message);
-
-  return true;
-}
-
-/**
- * Kiểm tra xem chữ của từ đang nối có trùng với chữ của từ cuối cùng hay không
- * @param {String} word
- * @param {NoichuChannelConfig} channelConfig
- * @param {Message} message
- * @returns {Promise<Boolean>}
- */
-async function checkStartChar(word, channelConfig, message) {
-  if (!channelConfig.lastWord) return await checkWord(word, message);
-
-  const lastChar = channelConfig.lastWord.charAt(channelConfig.lastWord.length - 1);
-
-  if (!word.startsWith(lastChar)) {
-    await noiChuError(message, `Đần, mày phải bắt đầu bằng \`${lastChar}\` chứ :|| !`);
-    return false;
-  }
-  return true;
-}
-
-/**
- * Kiểm tra có phải từ đã được dùng hay không.
- * @param {String} word
- * @param {NoichuChannelConfig} channelConfig
- * @param {Message} message
- * @returns {Promise<Boolean>}
- */
-async function checkIsRepeated(word, channelConfig, message) {
-  const messages = [`Có thằng nối từ này rồi, chọn khác đê !`];
-
-  if (!channelConfig.wordUsedList) return true;
-
-  if (channelConfig.wordUsedList.includes(word)) {
-    await noiChuError(message, messages[0]);
-    return false;
-  }
-  return true;
-}
-
-/**
- * Check xem kênh đã đạt giới hạn nối chữ chưa
- * @param {NoichuChannelConfig} channelConfig
- * @param {Message} message
- * @returns {Promise<Boolean>}
- */
-async function checkIsReachedMaxWords(channelConfig, message) {
-  const length = channelConfig.wordUsedList.split(" ").length;
-  if (channelConfig.limit < 1) return true;
-  if (length >= channelConfig.limit) {
-    message.channel.send({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(Colors.Green)
-          .setTitle(`Game nối chữ đã đạt max từ: *\`${channelConfig.limit}\`*`)
-          .setDescription(`*Reset game !*`),
-      ],
-    });
-
-    channelConfig.lastWord = "";
-    channelConfig.lastUserId = "";
-    channelConfig.wordUsedList = "";
-    return true;
-  }
-  return false;
-}
-
 module.exports = {
   name: "messageCreate",
   /**
@@ -176,9 +32,11 @@ module.exports = {
     try {
       if (message.author.bot) return;
 
-      const authorId = message.author.id;
-      const guildId = message.channel.guildId;
-      const channelId = message.channelId;
+      const checker = new NoichuChecker(message.channel.id, message.guild.id);
+      await checker.check(message);
+
+      const vnChecker = new NoituChecker(message.channel.id, message.guild.id);
+      await vnChecker.check(message);
 
       if (message.content.includes(`#uselessfact`)) {
         let fact;
@@ -197,38 +55,7 @@ module.exports = {
         await message.reply({ content: fact });
         return;
       }
-
-      let guildConfig = new GuildConfig(message.guildId, message.guild.name);
-      if (!(await guildConfig.sync())) await guildConfig.update();
-
-      const channelConfig = new NoichuChannelConfig(channelId, guildId);
-      if (!(await channelConfig.sync())) return;
-
-      if (channelConfig) {
-        const list = message.content.split(" ");
-        if (list.length > 1) return;
-        if (list[0].startsWith("<") || list[0].startsWith(":")) return;
-        const word = list[0].toLowerCase();
-
-        if (!(await checkLastUser(authorId, channelConfig, word, message))) return;
-        if (!(await checkStartChar(word, channelConfig, message))) return;
-        if (channelConfig.repeated != -1) {
-          if (!(await checkIsRepeated(word, channelConfig, message))) return;
-        }
-        if (!(await checkWord(channelConfig, word, message))) return;
-
-        message.react("✅");
-        channelConfig.lastWord = word;
-        channelConfig.lastUserId = authorId;
-        channelConfig.wordUsedList = channelConfig.wordUsedList + " " + word;
-
-        await checkIsReachedMaxWords(channelConfig, message);
-
-        lock.acquire();
-        await channelConfig.update();
-      }
     } catch (err) {
-      console.log(err);
       logger.error(`On event ${this.name}: ${err}`);
     } finally {
       lock.release();

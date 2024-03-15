@@ -13,7 +13,7 @@ const {
 const {
   ConfesisonPostChannelManager,
   ConfessionPost,
-} = require("../../functions/confessionSystem/Confession");
+} = require("../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()

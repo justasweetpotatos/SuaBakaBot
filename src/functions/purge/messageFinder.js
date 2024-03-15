@@ -1,4 +1,12 @@
-const { User, Message, Collection } = require("discord.js");
+const {
+  User,
+  Message,
+  Collection,
+  TextChannel,
+  ThreadChannel,
+  ForumChannel,
+  VoiceChannel,
+} = require("discord.js");
 const logger = require("../../utils/logger");
 
 /**
@@ -30,12 +38,15 @@ function pushData(message, userDataCollection) {
 module.exports = {
   /**
    * Lưu ý: startMsgId hoặc endMessageId nếu undefined hoặc invalid sẽ lập tức lấy message mới nhất và message cũ nhất
-   * @param {import("discord.js").TextBasedChannel} targetChannel Target channel to seach.
+   * @param {TextChannel | ThreadChannel | VoiceChannel} targetChannel Target channel to seach.
    * @param {User} targetUser Target user to seach.
    * @param {String} startMsgId Start message id to find. If null, undefined or not valid, get the last message in channel.
    * @param {String} endMsgId  End message id to find.If null, undefined or not valid, get the first message in channel.
    * @param {Number} amount Number of message to find. If null, undefined or not valid, default is 10.
-   * @returns {Promise<{ messages: Array<Message>, userData: Collection<String, { user: User, messages: Message[] }> }>}
+   * @returns {Promise<{
+   * messages: Collection<String, Message<Boolean>>,
+   * bulkDeltableMessages: Collection<String, Message<Boolean>>,
+   * userData: Collection<String, { user: User, messages: Message[] }> }>}
    */
   async findMessages(targetChannel, targetUser, startMsgId, endMsgId, amount) {
     try {
@@ -48,15 +59,19 @@ module.exports = {
         : (endMsg = (await targetChannel.messages.fetch({ limit: 1, after: 1 })).first());
 
       let userData = new Collection();
-      let resutlMessages = [];
+      let resutlMessages = new Collection();
+      let resutlBulkDeltableMessages = new Collection();
       let startFetchMsgId;
       let continueFetching = true;
 
       if (startMsg) {
-        let afterStartMessage = (await targetChannel.messages.fetch({ limit: 1, after: startMsg.id })).first();
+        let afterStartMessage = (
+          await targetChannel.messages.fetch({ limit: 1, after: startMsg.id })
+        ).first();
         if (afterStartMessage) startMsg = afterStartMessage;
         else if ((targetUser && targetUser.id === startMsg.author.id) || !targetUser) {
-          resutlMessages.push(startMsg);
+          if (startMsg.bulkDeletable) resutlBulkDeltableMessages.set(startMsg.id, startMsg);
+          else resutlMessages.set(startMsg.id, startMsg);
           pushData(startMsg, userData);
         }
       }
@@ -69,10 +84,13 @@ module.exports = {
           before: startFetchMsgId,
         });
 
+        if (fetchedMessages.size <= 0) return;
+
         fetchedMessages.every((msg) => {
-          if (resutlMessages.length < amount) {
-            if ((targetUser.id && targetUser.id === msg.author.id) || !targetUser.id) {
-              resutlMessages.push(msg);
+          if (resutlMessages.size + resutlBulkDeltableMessages.size < amount) {
+            if ((targetUser && targetUser.id === msg.author.id) || !targetUser) {
+              if (!msg.bulkDeletable) resutlMessages.set(msg.id, msg);
+              else resutlBulkDeltableMessages.set(msg.id, msg);
               pushData(msg, userData);
               if (msg.id === endMsg.id) {
                 continueFetching = false;
@@ -89,7 +107,11 @@ module.exports = {
         startFetchMsgId = fetchedMessages.last()?.id;
       }
 
-      return { messages: resutlMessages, userData: userData };
+      return {
+        messages: resutlMessages,
+        bulkDeltableMessages: resutlBulkDeltableMessages,
+        userData: userData,
+      };
     } catch (error) {
       logger.error(error);
       return { messages: [], userData: new Collection() };

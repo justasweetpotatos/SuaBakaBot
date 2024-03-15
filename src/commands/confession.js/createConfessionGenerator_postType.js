@@ -5,7 +5,7 @@ const {
   CommandInteraction,
   Client,
 } = require("discord.js");
-const { ConfesisonPostChannelManager } = require("../../functions/confessionSystem/Confession");
+const { ConfesisonPostChannelManager } = require("../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()

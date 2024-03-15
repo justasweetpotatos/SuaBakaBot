@@ -11,7 +11,10 @@ const {
 } = require("discord.js");
 const logger = require("../../../utils/logger");
 const { GuildGlobalConfig } = require("../../../functions/guildConfig/guildGlobalConfig");
-const { ConfessionPost, ConfesisonPostChannelManager } = require("../../../functions/confessionSystem/Confession");
+const {
+  ConfessionPost,
+  ConfesisonPostChannelManager,
+} = require("../../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: {

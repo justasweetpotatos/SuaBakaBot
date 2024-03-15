@@ -1,6 +1,6 @@
 const { ButtonStyle, ButtonInteraction, Client } = require("discord.js");
 const logger = require("../../../utils/logger");
-const { ConfessionPost } = require("../../../functions/confessionSystem/Confession");
+const { ConfessionPost } = require("../../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: {

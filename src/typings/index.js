@@ -1,6 +1,7 @@
 const logger = require("../utils/logger");
 const { connector } = require("../database/connection");
 const { EmbedBuilder, Colors, Embed } = require("discord.js");
+const { GuildGlobalConfig } = require("../functions/guildConfig/guildGlobalConfig");
 
 const noichuMessageTypes = {
   wrongWordMessages: 1,
@@ -23,9 +24,9 @@ class NoichuChannelConfig {
     // Data
     this.id = null;
     this.guildId = null;
-    this.lastWord = null;
-    this.lastUserId = null;
-    this.wordUsedList = null;
+    this.lastWord = "";
+    this.lastUserId = "";
+    this.wordUsedList = "";
 
     // Rules
     this.registed = false;
@@ -76,6 +77,7 @@ class NoichuChannelConfig {
         break;
       default:
         valid = false;
+        vvvxx;
         break;
     }
 
@@ -88,7 +90,8 @@ class NoichuChannelConfig {
    */
   async sync() {
     try {
-      await connector.checkingGuildDB(this.guildId);
+      const guildGlbConfig = new GuildGlobalConfig(this.guildId);
+      if (!(await guildGlbConfig.checkingGuildDB(this.guildId))) await guildGlbConfig.createGuildDB();
 
       const query = `
         SELECT * FROM ${this.guildDBName}.noichu_channels
@@ -205,6 +208,123 @@ class NoichuChannelConfig {
   }
 }
 
+class NoituTiengVietChannelConfig {
+  /**
+   *
+   * @param {String} channelId
+   * @param {String} guildId
+   */
+  constructor(channelId, guildId) {
+    // Data
+    this.id = null;
+    this.guildId = null;
+    this.lastWord = "";
+    this.lastUserId = "";
+    this.wordUsedList = {};
+
+    // Rules
+    this.registed = false;
+    this.repeated = -1;
+    this.limit = 100;
+
+    // Messages
+    this.wrongWordMessages = [];
+    this.wrongStartCharMessages = [];
+    this.isBeforeUserMessages = [];
+    this.isRepeatedWordMessages = ["<Có thằng nối từ này rồi, chọn khác đê !>"];
+
+    // guild DB name
+    this.guildDBName = `guild_`;
+
+    if (channelId && guildId) {
+      this.id = channelId;
+      this.guildId = guildId;
+      this.guildDBName += `${guildId}`;
+      return this;
+    } else throw new Error(`Variable channelId and guildId is missing !`);
+  }
+
+  /**
+   *
+   * @returns {Promise<Boolean>}
+   */
+  async sync() {
+    try {
+      const guildGlbConfig = new GuildGlobalConfig(this.guildId);
+      if (!(await guildGlbConfig.checkingGuildDB(this.guildId))) await guildGlbConfig.createGuildDB();
+
+      const query = `
+        SELECT * FROM ${this.guildDBName}.noitu_channels
+        WHERE id = ?
+      `;
+      const values = [this.id];
+      const results = await connector.executeQuery(query, values);
+
+      if (results.length === 0) return false;
+      else {
+        const config = results[0];
+        this.lastWord = config.last_word;
+        this.lastUserId = config.last_user_id;
+        this.wordUsedList = JSON.parse(config.word_used_list);
+        this.repeated = config.repeated;
+        this.limit = config.limit;
+        this.wrongWordMessages = config.wrong_word_messages?.split("///");
+        this.wrongStartCharMessages = config.wrong_startchar_messages?.split("///");
+        this.isBeforeUserMessages = config.is_before_user_messages?.split("///");
+        this.isRepeatedWordMessages = config.is_repeated_word_messages?.split("///");
+        return true;
+      }
+    } catch (err) {
+      logger.error(`Error on syncing config of channel with id ${this.id}: ${err}`);
+      return false;
+    }
+  }
+
+  /**
+   *
+   * @returns {Promise<Boolean>} Nếu trả về true, cập nhật thành công và ngược lại
+   */
+  async update() {
+    try {
+      const query = `
+        INSERT INTO ${this.guildDBName}.noitu_channels
+        (id, last_user_id, last_word, word_used_list, \`limit\`, repeated, wrong_word_messages, wrong_startchar_messages, is_before_user_messages, is_repeated_word_messages)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+        last_word = VALUES(last_word),
+        last_user_id = VALUES(last_user_id),
+        word_used_list = VALUES(word_used_list),
+        repeated = VALUES(repeated),
+        \`limit\` = VALUES(\`limit\`),
+        wrong_word_messages = VALUES(wrong_word_messages),
+        wrong_startchar_messages = VALUES(wrong_startchar_messages),
+        is_before_user_messages = VALUES(is_before_user_messages),
+        is_repeated_word_messages = VALUES(is_repeated_word_messages)
+      `;
+      const values = [
+        this.id,
+
+        this.lastUserId,
+        this.lastWord,
+        JSON.stringify(this.wordUsedList),
+
+        this.limit,
+        this.repeated,
+
+        this.wrongWordMessages.join("///"),
+        this.wrongStartCharMessages.join("///"),
+        this.isBeforeUserMessages.join("///"),
+        this.isRepeatedWordMessages.join("///"),
+      ];
+      await connector.executeQuery(query, values);
+      return true;
+    } catch (err) {
+      logger.error(`Error in updating config of channel with id ${this.id}: ${err}`);
+      return false;
+    }
+  }
+}
+
 class GuildConfig {
   /**
    *
@@ -238,7 +358,8 @@ class GuildConfig {
 
   async sync() {
     try {
-      await connector.checkingGuildDB(this.id);
+      const guildGlbConfig = new GuildGlobalConfig(this.id);
+      if (!(await guildGlbConfig.checkingGuildDB(this.id))) await guildGlbConfig.createGuildDB();
 
       const query = `
         SELECT * FROM ${this.guildDBName}.guild_info
@@ -283,4 +404,4 @@ class GuildConfig {
   }
 }
 
-module.exports = { NoichuChannelConfig, GuildConfig, noichuMessageTypes };
+module.exports = { NoichuChannelConfig, GuildConfig, NoituTiengVietChannelConfig, noichuMessageTypes };

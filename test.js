@@ -1,87 +1,46 @@
-class ConfessionPost {
-  /**
-   *
-   * @param {String} id
-   * @param {String} authorId
-   * @param {String} channelId
-   * @param {String} guildId
-   * @param {String} name
-   * @param {String} content
-   * @param {Boolean} anonymous
-   * @param {Boolean} locked
-   */
-  constructor(id, authorId, channelId, guildId, name, content, anonymous, locked) {
-    // User data
-    this.id = id;
-    this.authorId = authorId;
-    this.channelId = channelId;
-    this.guildId = guildId;
+const dict = require(`./src/assets/noituTiengVietDictionaryCache.json`);
+let cache = {}; //require(`./src/events/noichu/noituTiengVietDictionaryCache.json`);
 
-    // Post data
-    this.name = name;
-    this.content = content;
-    this.anonymous = anonymous;
-    this.locked = locked;
-    this.sync = false;
-  }
+let counter = 0;
 
-  /**
-   *
-   * @returns {Promise<Boolean>}
-   */
-  async sync() {
-    try {
-      const query = `SELECT * FROM guild_${this.guildId}.confession_posts WHERE id = '${this.id}'`;
-
-      const resutls = await connector.executeQuery(query);
-
-      if (resutls.size == 0) return false;
-
-      this.name = resutls[0].name;
-      this.content = resutls[0].content;
-      this.locked = resutls[0].locked;
-      return true;
-    } catch (error) {
-      logger.errors.database(`Error on syncing data of post with id ${this.id}: ${error}`);
-      return false;
+for (const key in dict) {
+  if (Object.hasOwnProperty.call(dict, key)) {
+    const element = dict[key];
+    if (!(key.split(" ").length < 1)) {
+      if (cache[key.split(" ")[0].toLowerCase()]) {
+        if (!cache[key.split(" ")[0].toLowerCase()][key]) {
+          cache[key.split(" ")[0].toLowerCase()][key] = { source: element.sounce };
+        }
+      } else {
+        cache[key.split(" ")[0].toLowerCase()] = {};
+      }
     }
   }
-
-  /**
-   * @returns {Promise<Boolean>}
-   */
-  async update() {
-    try {
-      const tableName = `guild_${this.guildId}`;
-      const query = `
-        INSERT INTO ${tableName}.confession_posts
-        (id, author_id, channel_id, guild_id, \`name\`, content, is_nsfw, \`locked\`, anonymous)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-        \`name\` = VALUES(\`name\`),
-        content = VALUES(content),
-        anonymous = VALUES(anonymous),
-        \`locked\` = VALUES(\`locked\`)
-      `;
-
-      const values = [
-        this.id,
-        this.authorId,
-        this.channelId,
-        this.guildId,
-        this.name,
-        this.content,
-        -1,
-        this.anonymous ? 1 : -1,
-        this.locked ? 1 : 1,
-      ];
-      await connector.executeQuery(query, values);
-      return true;
-    } catch (error) {
-      logger.errors.database(`Error on updating data of post ${this.id} in channel ${this.channelId}: ${error}`);
-      return false;
-    }
-  }
+  counter += 1;
 }
 
-const h = new ConfessionPost().sync();
+const fs = require("fs");
+
+// // // Đường dẫn đến tệp JSON
+// // const filePath = "data.json";
+
+// // // Đọc dữ liệu từ tệp JSON
+// // let data = {};
+// // try {
+// //   data = JSON.parse(fs.readFileSync(filePath, "utf-8"));
+// // } catch (error) {
+// //   console.error("Không thể đọc tệp JSON:", error);
+// // }
+
+// // // Thêm hoặc cập nhật dữ liệu
+// // data.newKey = "newValue";
+
+// // Ghi dữ liệu mới vào tệp JSON
+
+const filePath = `./src/assets/noituTiengVietDictionaryCache.json`;
+try {
+  fs.writeFileSync(filePath, JSON.stringify(cache, null, 2));
+  console.log("Dữ liệu đã được ghi vào tệp JSON thành công.");
+} catch (error) {
+  console.error("Không thể ghi vào tệp JSON:", error);
+}

@@ -1,6 +1,9 @@
-const { CommandInteraction, EmbedBuilder, Colors } = require("discord.js");
+const { CommandInteraction, EmbedBuilder, Colors, Message } = require("discord.js");
+const fs = require("fs");
 const { connector } = require("../../database/connection");
 const logger = require("../../utils/logger");
+const { default: axios } = require("axios");
+const path = require("path");
 
 const backupStatus = {
   success: 1,
@@ -54,6 +57,76 @@ class BackupSystem {
 
   /**
    *
+   * @returns {Promise<String>} Attachment folder path
+   */
+  async createAttachmentDBFolder() {
+    const guildAttachmentDBFolderPath = `D:\\attachments_DB\\guild_attachments_${this.guildId}`;
+    if (!fs.existsSync(guildAttachmentDBFolderPath))
+      fs.mkdir(guildAttachmentDBFolderPath, { recursive: true }, (err) => {
+        err
+          ? logger.errors.database(
+              `Error on creating attachment folder for guild with id ${this.guildId}: ${err}`
+            )
+          : "";
+      });
+    return guildAttachmentDBFolderPath;
+  }
+
+  /**
+   *
+   * @param {Message<Boolean>} messsage
+   * @returns {Promise<String>} Id attachment list
+   */
+  async downloadAttactmentsOfMessage(messsage) {
+    try {
+      const guildAttachmentDBFolderPath = await this.createAttachmentDBFolder();
+      let attachmentIDList = "";
+
+      messsage.attachments.forEach(async (msgAttachment) => {
+        try {
+          const id = msgAttachment.id;
+          const attachmentURL = msgAttachment.url;
+
+          // Dowload attachment
+          const response = await axios.get(attachmentURL, { responseType: "arraybuffer" }).catch((err) => {
+            err ? console.log(err) : "";
+          });
+
+          const { fileTypeName, fileName } = (() => {
+            const arrayOfString = path.basename(attachmentURL).split("?")[0].split(".");
+            const fileTypeName = arrayOfString[arrayOfString.length - 1];
+            const fileName = path.basename(attachmentURL).split("?")[0].replace(fileTypeName, "");
+            return { fileTypeName: fileTypeName, fileName: fileName };
+          })();
+
+          const fullFileName = `${id}.${fileName}${fileTypeName}`;
+
+          const filePath = path.join(guildAttachmentDBFolderPath, fullFileName);
+
+          fs.writeFile(filePath, response.data, (err) => {
+            if (err) {
+              logger.errors.server(`Lỗi khi ghi tệp đính kèm: ${err}`);
+            } else {
+              attachmentIDList += `${id} `;
+            }
+          });
+          return attachmentIDList;
+        } catch (error) {
+          logger.errors.database(
+            `Error on getting attachment file of message with id ${messsage.id}: ${error}`
+          );
+        }
+      });
+
+      return attachmentIDList;
+    } catch (error) {
+      logger.errors.database(`Error on getting attachment file of message with id ${messsage.id}: ${error}`);
+      return "";
+    }
+  }
+
+  /**
+   *
    * @param {import("discord.js").TextBasedChannel} channel
    * @param {CommandInteraction} interaction
    * @returns {Promise<{status: number,
@@ -86,14 +159,19 @@ class BackupSystem {
         embeds: [
           new EmbedBuilder()
             .setTitle(`Status:`)
-            .setDescription(`\`Messages:\` **${countOfMessage}**\n\`Failed Messages:\` **${countOfFailedMessage}**`)
+            .setDescription(
+              `\`Messages:\` **${countOfMessage}**\n\`Failed Messages:\` **${countOfFailedMessage}**`
+            )
             .setColor(Colors.Blurple),
         ],
       });
 
       while (true) {
         // Get message
-        const listFechedMessage = await channel.messages.fetch({ limit: 100, before: startFetchingMsg.id });
+        const listFechedMessage = await channel.messages.fetch({
+          limit: 100,
+          before: startFetchingMsg.id,
+        });
 
         // If list size equal to zero, stop loop.
         if (listFechedMessage.size === 0) break;
@@ -103,23 +181,31 @@ class BackupSystem {
           //If message come from bot, skip this.
           if (msg.author.bot) return;
 
+          // Prepare to insert message embed
+          const embeds = msg.embeds;
+          if (embeds.length === 0);
+
+          // Prepare to insert message attachment
+          let attachmentIDList = await this.downloadAttactmentsOfMessage(msg);
+
           // Create insert messsage query.
           const query = `
-            INSERT INTO ${this.guildDBName}.${tableName} (id, content, author_id) 
-            VALUES(?, ?, ?)
+            INSERT INTO ${this.guildDBName}.${tableName} (id, author_id, \`content\`, attachment_id_list)
+            VALUES(?, ?, ?, ?)
             ON DUPLICATE KEY UPDATE
-            content = VALUES(content)
+            \`content\` = VALUES(\`content\`),
+            attachment_id_list = VALUES(attachment_id_list);
             `;
 
           // Use try catch to process and catch error.
           try {
             // Execute query.
-            await connector.executeQuery(query, [msg.id, msg.content, msg.author.id]);
+            await connector.executeQuery(query, [msg.id, msg.author.id, msg.content, attachmentIDList]);
             // After insert completed, add to countOfMessage
             countOfMessage += 1;
 
             // If countOfMessage divided to 100, send status
-            if (countOfMessage % 100 == 0)
+            if (countOfMessage % 5000 == 0)
               await statusMessage.edit({
                 embeds: [
                   new EmbedBuilder()
@@ -148,7 +234,9 @@ class BackupSystem {
         embeds: [
           new EmbedBuilder()
             .setTitle(`Status:`)
-            .setDescription(`\`Messages:\` **${countOfMessage}**\n\`Failed Messages:\` **${countOfFailedMessage}**`)
+            .setDescription(
+              `\`Messages:\` **${countOfMessage}**\n\`Failed Messages:\` **${countOfFailedMessage}**`
+            )
             .setColor(Colors.Blurple),
         ],
       });

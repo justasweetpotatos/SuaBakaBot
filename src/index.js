@@ -1,6 +1,6 @@
 require(`dotenv`).config();
 const { TOKEN } = process.env;
-const { Client, Collection, GatewayIntentBits, REST } = require("discord.js");
+const { Client, Collection, GatewayIntentBits, REST, ActivityType } = require("discord.js");
 const fs = require("fs");
 const logger = require("./utils/logger");
 
@@ -44,7 +44,6 @@ for (const folder of fs.readdirSync("./src/functions")) {
 for (const handlerPath of fs.readdirSync(`./src/handlers`)) {
   require(`./handlers/${handlerPath}`)(client);
 }
-
 
 client.handleEvents();
 client.handleCommands();

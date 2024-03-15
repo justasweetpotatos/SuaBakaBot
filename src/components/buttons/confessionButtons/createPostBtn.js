@@ -9,7 +9,10 @@ const {
   EmbedBuilder,
   Colors,
 } = require("discord.js");
-const { ConfesisonPostChannelManager, ConfessionPost } = require("../../../functions/confessionSystem/Confession");
+const {
+  ConfesisonPostChannelManager,
+  ConfessionPost,
+} = require("../../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: {
@@ -23,7 +26,10 @@ module.exports = {
    * @param {Client} client
    */
   async execute(interaction, client) {
-    const channelManager = new ConfesisonPostChannelManager(interaction.channel.parentId, interaction.guildId);
+    const channelManager = new ConfesisonPostChannelManager(
+      interaction.channel.parentId,
+      interaction.guildId
+    );
     await channelManager.sync();
 
     const postNameInput = new TextInputBuilder()

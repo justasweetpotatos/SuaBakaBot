@@ -5,8 +5,10 @@ const {
   SlashCommandStringOption,
   EmbedBuilder,
   Colors,
+  CommandInteraction,
 } = require("discord.js");
 const { findMessages } = require("../../functions/purge/messageFinder");
+const logger = require("../../utils/logger");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -19,12 +21,14 @@ module.exports = {
         .setRequired(true)
         .setAutocomplete(true)
     )
-    .addUserOption(new SlashCommandUserOption().setName("user").setDescription("Target user to delete messages."))
+    .addUserOption(
+      new SlashCommandUserOption().setName("user").setDescription("Target user to delete messages.")
+    )
     .addStringOption(new SlashCommandStringOption().setName("from").setDescription("Id of start message"))
     .addStringOption(new SlashCommandStringOption().setName("to").setDescription("Id of end message")),
   /**
    *
-   * @param {import("discord.js").Interaction} interaction
+   * @param {CommandInteraction} interaction
    * @param {*} client
    */
   async execute(interaction, client) {
@@ -55,7 +59,7 @@ module.exports = {
         return;
       }
 
-      const { messages: collectedMessages, userData: userData } = await findMessages(
+      const { messages, userData, bulkDeltableMessages } = await findMessages(
         channel,
         user,
         startMsgId,
@@ -65,24 +69,29 @@ module.exports = {
 
       let fields = [];
       for (const item of userData)
-        fields.push({ name: "-", value: `**${item[1].user.username}: ${item[1].messages.length}**`, inline: false });
+        fields.push({
+          name: "-",
+          value: `**${item[1].user.username}: ${item[1].messages.length}**`,
+          inline: false,
+        });
 
       const embed = new EmbedBuilder()
         .setTitle(`Thao tác hoàn tất !`)
-        .setDescription(`Đã xóa ${collectedMessages.length} tin nhắn !`)
+        .setDescription(`Đã xóa ${messages.length} tin nhắn !`)
         .addFields(fields.splice(0, 25))
         .setColor(Colors.Green)
         .setFooter({ text: `Và hơn ${userData.size - 25 > 0 ? userData.size - 25 : 0} người dùng khác !` });
 
+      await channel.bulkDelete(bulkDeltableMessages);
+
       await Promise.all(
-        collectedMessages.map(async (message) => {
+        messages.map(async (message) => {
           if (message.deletable) await message.delete();
         })
       );
       await interaction.editReply({ embeds: [embed] });
     } catch (err) {
-      await interaction.editReply({ content: `error ! ${err}` });
-      console.log(err);
+      logger.errors.command(`Error on executing command ${this.data.name}: ${err}`);
     }
   },
 };

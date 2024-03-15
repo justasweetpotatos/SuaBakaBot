@@ -9,7 +9,10 @@ const {
   EmbedBuilder,
   Colors,
 } = require("discord.js");
-const { ConfesisonPostChannelManager, ConfessionPost } = require("../../../functions/confessionSystem/Confession");
+const {
+  ConfesisonPostChannelManager,
+  ConfessionPost,
+} = require("../../../functions/confessionSystem/ConfessionFunction");
 
 module.exports = {
   data: {
@@ -23,7 +26,10 @@ module.exports = {
    * @param {Client} client
    */
   async execute(interaction, client) {
-    const channelManager = new ConfesisonPostChannelManager(interaction.channel.parentId, interaction.guildId);
+    const channelManager = new ConfesisonPostChannelManager(
+      interaction.channel.parentId,
+      interaction.guildId
+    );
     await channelManager.sync();
 
     const postNameInput = new TextInputBuilder()
@@ -52,7 +58,8 @@ module.exports = {
 
     await interaction.awaitModalSubmit({ time: 600_00 }).then(async (modadSubmitInteraction) => {
       await modadSubmitInteraction.deferReply({ ephemeral: true });
-      if (modadSubmitInteraction.customId !== `confession-create-anoymous-post-modal-${interaction.user.id}`) return;
+      if (modadSubmitInteraction.customId !== `confession-create-anoymous-post-modal-${interaction.user.id}`)
+        return;
 
       const postName = modadSubmitInteraction.fields.getTextInputValue(
         `confession-create-anoymous-post-modal-${interaction.user.id}-post-name-input`
