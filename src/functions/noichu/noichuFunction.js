@@ -663,9 +663,11 @@ class NoituChecker {
 
     const phraseLastWord = phrase.split(" ").reverse()[0];
 
-    if (!this.channelConfig.wordUsedList[phraseLastWord]) return true;
+    if (!this.channelConfig.wordUsedList[phraseLastWord])
+      this.channelConfig.wordUsedList[phraseLastWord] = {};
 
     const sizeL = Object.keys(this.channelConfig.wordUsedList[phraseLastWord])?.length;
+    console.log(dictCache[phraseLastWord]);
     const sizeD = Object.keys(dictCache[phraseLastWord]).length;
 
     console.log(sizeL >= sizeD);
@@ -683,6 +685,28 @@ class NoituChecker {
       return false;
     }
     return true;
+  }
+
+  /**
+   * @returns {Promise<String}
+   */
+  async getRamdomSuggetion() {
+    try {
+      const cache = require(`../../assets/noituTiengVietDictionaryCache.json`);
+      const wordCache = cache[this.channelConfig.lastWord.split(" ").reverse()[0]];
+      const wordUsedCache =
+        this.channelConfig.wordUsedList[this.channelConfig.lastWord.split(" ").reverse()[0]];
+
+      const results = [];
+
+      for (const item in wordCache) {
+        if (!wordUsedCache[item]) results.push(item);
+      }
+
+      return results[getRandomInt(0, results.length - 1)];
+    } catch (error) {
+      logger.errors.server(`Error on NoichuChecker: ${error}`);
+    }
   }
 
   /**
