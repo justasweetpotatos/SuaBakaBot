@@ -8,7 +8,7 @@ module.exports = {
    * @param {Client} client
    * @param {User} user
    */
-  async execute(client, user) {
+  async execute(user, client) {
     if (user.bot) return;
 
     const channelId = `1188481027946070097`;

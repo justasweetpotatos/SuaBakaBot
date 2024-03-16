@@ -43,6 +43,9 @@ const logger = {
     eventRegiter: function (message) {
       console.log(`[${getTimestamp()}] [ERROR] [EVENT-REGISTER] ${message}`);
     },
+    event: function (message) {
+      console.log(`[${getTimestamp()}] [ERROR] [EVENT] ${message}`);
+    },
     component: function (message) {
       console.log(`[${getTimestamp()}] [ERROR] [COMPONENT] ${message}`);
     },

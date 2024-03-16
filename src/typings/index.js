@@ -404,4 +404,45 @@ class GuildConfig {
   }
 }
 
+class ReactionRoleMessageConfig {
+  /**
+   *
+   * @param {String} messageId
+   * @param {String} emojiId
+   */
+  constructor(messageId, emojiId, guildId) {
+    this.id = messageId;
+    this.emojiId = emojiId;
+    this.guildId = guildId;
+    if (!(this.id && this.emojiId && guildId)) throw new Error(`messageId, emojiId, guildId required !`);
+  }
+
+  /**
+   * 
+   * @returns {Promise<Boolean>}
+   */
+  async sync() {
+    try {
+      const query = `
+        SELECT * FROM guild_${this.guildId}.reaction_emojis WHERE id = ${this.id} AND emoji_id = ${this.emojiId};
+      `;
+
+      const result = (await connector.executeQuery(query, []))[0];
+      if (!result) return false;
+
+      this.roleList = result.role_list;
+
+      return true;
+    } catch (error) {
+      logger.errors.database(
+        `Error on syncing data of reaction role with message id ${this.id} with role id ${this.emojiId}: ${error}`
+      );
+    }
+  }
+
+  async update() {}
+
+  async delete() {}
+}
+
 module.exports = { NoichuChannelConfig, GuildConfig, NoituTiengVietChannelConfig, noichuMessageTypes };

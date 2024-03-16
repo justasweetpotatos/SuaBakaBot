@@ -13,12 +13,9 @@ module.exports = (client) => {
         case "client":
           for (const file of eventFiles) {
             const event = require(`../events/${folder}/${file}`);
-            if (event.once) {
-              client.once(event.name, (...args) => event.execute(...args, client));
-              logger.log.eventRegiter(`Event "${event.name}" loaded successfully.`);
-            } else {
-              client.on(event.name, (...args) => event.execute(...args, client));
-            }
+            if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
+            else client.on(event.name, (...args) => event.execute(...args, client));
+            logger.log.eventRegiter(`Event "${file}" loaded successfully.`);
           }
           break;
         case "noichu":
@@ -28,20 +25,31 @@ module.exports = (client) => {
               if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
               else client.on(event.name, (...args) => event.execute(...args, client));
 
-              logger.log.eventRegiter(`Event "${event.name}" loaded successfully.`);
+              logger.log.eventRegiter(`Event "${file}" loaded successfully.`);
             } else logger.error(`Invalid event file: ${file}. Missing required properties.`);
           }
           break;
         case "prefixCommands":
           for (const file of eventFiles) {
             const event = require(`../events/${folder}/${file}`);
-
             if (event.name && event.execute) {
               if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
               else client.on(event.name, (...args) => event.execute(...args, client));
-              logger.log.eventRegiter(`Event "${event.name}" loaded successfully.`);
+              logger.log.eventRegiter(`Event "${file}" loaded successfully.`);
             } else logger.error(`Invalid event file: ${file}. Missing required properties.`);
           }
+          break;
+        case "guildEvents":
+          for (const file of eventFiles) {
+            const event = require(`../events/${folder}/${file}`);
+            if (event.once) {
+              client.once(event.name, (...args) => event.execute(...args, client));
+              logger.log.eventRegiter(`Event "${event.name}" loaded successfully.`);
+            } else {
+              client.on(event.name, (...args) => event.execute(...args, client));
+            }
+          }
+          break;
         // Add additional cases for other event folders if needed
       }
     }

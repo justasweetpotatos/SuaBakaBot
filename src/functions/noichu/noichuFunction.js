@@ -539,7 +539,7 @@ class NoituChecker {
       embeds: [embed],
     });
     setTimeout(async () => {
-      await repliedMessage.delete();
+      repliedMessage.deletable ? await repliedMessage.delete() : "";
     }, 5000);
   }
 
@@ -667,8 +667,8 @@ class NoituChecker {
       this.channelConfig.wordUsedList[phraseLastWord] = {};
 
     const sizeL = Object.keys(this.channelConfig.wordUsedList[phraseLastWord])?.length;
-    const sizeD = Object.keys(dictCache[phraseLastWord]).length;
-    
+    const sizeD = dictCache[phraseLastWord] ? Object.keys(dictCache[phraseLastWord]).length : 0;
+
     if (sizeL >= sizeD) {
       await message.channel.send({
         embeds: [
