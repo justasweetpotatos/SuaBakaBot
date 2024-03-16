@@ -667,10 +667,8 @@ class NoituChecker {
       this.channelConfig.wordUsedList[phraseLastWord] = {};
 
     const sizeL = Object.keys(this.channelConfig.wordUsedList[phraseLastWord])?.length;
-    console.log(dictCache[phraseLastWord]);
     const sizeD = Object.keys(dictCache[phraseLastWord]).length;
-
-    console.log(sizeL >= sizeD);
+    
     if (sizeL >= sizeD) {
       await message.channel.send({
         embeds: [
