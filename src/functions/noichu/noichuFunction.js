@@ -663,9 +663,13 @@ class NoituChecker {
 
     const phraseLastWord = phrase.split(" ").reverse()[0];
 
-    const sizeL = Object.keys(this.channelConfig.wordUsedList[phraseLastWord]).length;
+    if (!this.channelConfig.wordUsedList[phraseLastWord]) return true;
+
+    const sizeL = Object.keys(this.channelConfig.wordUsedList[phraseLastWord])?.length;
     const sizeD = Object.keys(dictCache[phraseLastWord]).length;
-    if (sizeL == sizeD) {
+
+    console.log(sizeL >= sizeD);
+    if (sizeL >= sizeD) {
       await message.channel.send({
         embeds: [
           new EmbedBuilder()
@@ -689,7 +693,7 @@ class NoituChecker {
     try {
       const authorId = message.author.id;
 
-      if (message.content.startsWith(`msg>>`)) return;
+      if (message.content.startsWith(`>`)) return;
       if (!(await this.syncConfig())) return false;
 
       let phrase = message.content.toLowerCase();
