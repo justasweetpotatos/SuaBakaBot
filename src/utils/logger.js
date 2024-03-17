@@ -24,9 +24,6 @@ const logger = {
       console.log(`[${getTimestamp()}] [LOGS] [COMPONENT] ${message}`);
     },
   },
-  error: function (message) {
-    console.error(`[${getTimestamp()}] [ERROR] ${message}`);
-  },
   errors: {
     server: function (message) {
       console.log(`[${getTimestamp()}] [ERROR] [SERVER] ${message}`);

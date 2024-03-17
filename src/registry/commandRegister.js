@@ -23,7 +23,7 @@ module.exports = {
       }
       logger.log.command("Successfully reloaded application (/) commands.");
     } catch (error) {
-      logger.error(error);
+      logger.errors.command(`Error on reloading commands: ${error}`);
     }
   },
 };

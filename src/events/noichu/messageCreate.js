@@ -19,7 +19,7 @@ module.exports = {
       const vnChecker = new NoituChecker(message.channel.id, message.guild.id);
       await vnChecker.check(message);
     } catch (err) {
-      logger.error(`On event ${this.name}: ${err}`);
+      logger.errors.event(`Error on listening event ${this.name}: ${err}`);
     }
   },
 };

@@ -54,28 +54,28 @@ module.exports = {
       const button = client.buttons.get(customId);
 
       if (!button) {
-        logger.error(`No action found for button with customId: ${customId}`);
+        logger.errors.component(`No action found for button with customId: ${customId}`);
         return;
       }
 
       try {
         await button.execute(interaction, client);
       } catch (error) {
-        logger.error(`Error executing button handler: ${error.message}`);
+        logger.errors.component(`Error executing button handler: ${error.message}`);
       }
     } else if (interaction.isStringSelectMenu() || interaction.isChannelSelectMenu()) {
       const { customId } = interaction;
       const menu = client.selectMenus.get(customId);
 
       if (!menu) {
-        logger.error(`No action found for this select on this menu.`);
+        logger.errors.component(`No action found for this select on this menu with id ${customId} !`);
         return;
       }
 
       try {
         menu.execute(interaction, client);
       } catch (err) {
-        logger.error(err);
+        logger.errors.component(`Error on executing button event with id ${customId} !`);
       }
     } else if (interaction.isAutocomplete()) {
       let choices = [];

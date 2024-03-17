@@ -115,7 +115,7 @@ class NoichuChannelConfig {
         return true;
       }
     } catch (err) {
-      logger.error(`Error on syncing config of channel with id ${this.id}: ${err}`);
+      logger.errors.database(`Error on syncing config of channel with id ${this.id}: ${err}`);
       return false;
     }
   }
@@ -159,7 +159,7 @@ class NoichuChannelConfig {
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
-      logger.error(`Error in updating config of channel with id ${this.id}: ${err}`);
+      logger.errors.database(`Error in updating config of channel with id ${this.id}: ${err}`);
       return false;
     }
   }
@@ -178,7 +178,7 @@ class NoichuChannelConfig {
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
-      logger.error(`Error in deleting config of channel with id ${this.id}: ${err}`);
+      logger.errors.database(`Error in deleting config of channel with id ${this.id}: ${err}`);
       return false;
     }
   }
@@ -275,7 +275,7 @@ class NoituTiengVietChannelConfig {
         return true;
       }
     } catch (err) {
-      logger.error(`Error on syncing config of channel with id ${this.id}: ${err}`);
+      logger.errors.database(`Error on syncing config of channel with id ${this.id}: ${err}`);
       return false;
     }
   }
@@ -319,7 +319,7 @@ class NoituTiengVietChannelConfig {
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
-      logger.error(`Error in updating config of channel with id ${this.id}: ${err}`);
+      logger.errors.database(`Error in updating config of channel with id ${this.id}: ${err}`);
       return false;
     }
   }
@@ -352,7 +352,7 @@ class GuildConfig {
       const query = `SELECT COUNT(*) AS \`count\` FROM ${this.guildDBName}.noichu_channels;`;
       return await connector.executeQuery(query)[0]?.count;
     } catch (error) {
-      logger.error(`Error on getting number of noichu channel in guild with id ${this.id}: ${error}`);
+      logger.errors.database(`Error on getting number of noichu channel in guild with id ${this.id}: ${error}`);
     }
   }
 
@@ -373,7 +373,7 @@ class GuildConfig {
       }
       return true;
     } catch (err) {
-      logger.error(`Error on syncing data from guild DB name ${this.guildDBName}: ${err}`);
+      logger.errors.database(`Error on syncing data from guild DB name ${this.guildDBName}: ${err}`);
       return false;
     }
   }
@@ -399,7 +399,7 @@ class GuildConfig {
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
-      logger.error(`Error on updating data to guild DB name ${this.guildDBName}: ${err}`);
+      logger.errors.database(`Error on updating data to guild DB name ${this.guildDBName}: ${err}`);
     }
   }
 }

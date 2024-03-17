@@ -2,14 +2,15 @@ const mysql = require("mysql");
 const logger = require("../utils/logger");
 const host = `localhost`;
 const user = `root`;
-const password = `MySQLServer`;
+const password = `NhuCoBacHoTrongNgayVuiDaiThang156@!RT`;
 
 class Connector {
   constructor() {
     this.adminConnection = mysql.createConnection({
       host: "localhost",
       user: "root",
-      password: "MySQLServer",
+      password: "password",
+      port: 3366,
     });
   }
 

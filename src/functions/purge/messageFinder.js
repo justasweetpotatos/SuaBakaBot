@@ -113,7 +113,7 @@ module.exports = {
         userData: userData,
       };
     } catch (error) {
-      logger.error(error);
+      logger.errors.server(`Error on executing function findMessage: ${error}`);
       return { messages: [], userData: new Collection() };
     }
   },

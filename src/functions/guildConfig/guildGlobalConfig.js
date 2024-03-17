@@ -110,7 +110,7 @@ class GuildGlobalConfig {
         }
       }
     } catch (error) {
-      logger.error(`Error on creating guild DB with name ${DBName}: ${error}`);
+      logger.errors.database(`Error on creating guild DB with name ${DBName}: ${error}`);
     }
   }
 
@@ -132,7 +132,7 @@ class GuildGlobalConfig {
           `Created DB for guild with id ${guildId} and with name guild_${guildId}, reason: No DB with name: guild_${guildId}`
         );
         return true;
-      } else logger.error(`Error on cheking guild DB with id ${guildId}: ${error}`);
+      } else logger.errors.database(`Error on cheking guild DB with id ${guildId}: ${error}`);
     }
   }
 }

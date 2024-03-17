@@ -539,7 +539,7 @@ class NoituChecker {
       embeds: [embed],
     });
     setTimeout(async () => {
-      repliedMessage.deletable ? await repliedMessage.delete() : "";
+      repliedMessage?.deletable ? await repliedMessage?.delete() : "";
     }, 5000);
   }
 
@@ -554,7 +554,7 @@ class NoituChecker {
 
     if (!dict[phrase]) {
       const messages = this.channelConfig.wrongWordMessages;
-      await this.noiChuError(message, messages.at(getRandomInt(0, 2)));
+      await this.noiChuError(message, messages.at(getRandomInt(0, this.channelConfig.wrongWordMessages.length)));
       return false;
     }
 

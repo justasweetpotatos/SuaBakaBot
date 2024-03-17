@@ -19,10 +19,8 @@ module.exports = {
 
       //await message.reply({ content: `Prefix command used !` });
 
-      console.log(`Command used by ${message.author.displayName}: ${message.content}`);
     } catch (err) {
-      logger.error(err);
-      console.log(err);
+      logger.errors.command(`Error on reading prefix comamnd none: ${err}`);
     }
   },
 };

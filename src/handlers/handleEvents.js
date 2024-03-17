@@ -26,7 +26,7 @@ module.exports = (client) => {
               else client.on(event.name, (...args) => event.execute(...args, client));
 
               logger.log.eventRegiter(`Event "${file}" loaded successfully.`);
-            } else logger.error(`Invalid event file: ${file}. Missing required properties.`);
+            } else logger.errors.eventRegiter(`Invalid event file: ${file}. Missing required properties.`);
           }
           break;
         case "prefixCommands":
@@ -36,7 +36,7 @@ module.exports = (client) => {
               if (event.once) client.once(event.name, (...args) => event.execute(...args, client));
               else client.on(event.name, (...args) => event.execute(...args, client));
               logger.log.eventRegiter(`Event "${file}" loaded successfully.`);
-            } else logger.error(`Invalid event file: ${file}. Missing required properties.`);
+            } else logger.errors.eventRegiter(`Invalid event file: ${file}. Missing required properties.`);
           }
           break;
         case "guildEvents":
