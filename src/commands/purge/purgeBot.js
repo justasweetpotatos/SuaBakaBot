@@ -64,8 +64,7 @@ async function messageFetcher(channel, amount) {
 
     return { messages: resutlMessages, userData: userData };
   } catch (err) {
-    logger.error(err);
-    console.log(err);
+    logger.errors.server(`Error on getting message from channel wiht id ${channel.id}: ${err}`);
     return { messages: [], userData: new Collection() };
   }
 }
@@ -122,8 +121,7 @@ module.exports = {
       //await channel.bulkDelete(collectedMessages);
       await interaction.editReply({ embeds: [embed] });
     } catch (err) {
-      logger.error(err);
-      console.log(err);
+      logger.errors.server(`Error on executing command name ${this.data.name}: ${err}`);
     }
   },
 };
