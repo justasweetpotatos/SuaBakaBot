@@ -11,7 +11,7 @@ module.exports = {
   async execute(client) {
     logger.log.server(`Ready! ${client.user.tag} is online now!`);
     client.user.setPresence({
-      activities: [{ name: `Đùa với trái tim neuron`, type: ActivityType.Playing}],
+      activities: [{ name: `Đùa trái tim neuron`, type: ActivityType.Playing}],
       status: "online",
     });
   },

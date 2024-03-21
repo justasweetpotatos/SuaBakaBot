@@ -60,7 +60,7 @@ class BackupSystem {
    * @returns {Promise<String>} Attachment folder path
    */
   async createAttachmentDBFolder() {
-    const guildAttachmentDBFolderPath = `D:\\attachments_DB\\guild_attachments_${this.guildId}`;
+    const guildAttachmentDBFolderPath = `C:\\attachments_DB\\guild_attachments_${this.guildId}`;
     if (!fs.existsSync(guildAttachmentDBFolderPath))
       fs.mkdir(guildAttachmentDBFolderPath, { recursive: true }, (err) => {
         err
@@ -186,7 +186,7 @@ class BackupSystem {
           if (embeds.length === 0);
 
           // Prepare to insert message attachment
-          let attachmentIDList = await this.downloadAttactmentsOfMessage(msg);
+          //let attachmentIDList = await this.downloadAttactmentsOfMessage(msg);
 
           // Create insert messsage query.
           const query = `
@@ -200,7 +200,7 @@ class BackupSystem {
           // Use try catch to process and catch error.
           try {
             // Execute query.
-            await connector.executeQuery(query, [msg.id, msg.author.id, msg.content, attachmentIDList]);
+            await connector.executeQuery(query, [msg.id, msg.author.id, msg.content, ""]);
             // After insert completed, add to countOfMessage
             countOfMessage += 1;
 

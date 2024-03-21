@@ -552,6 +552,8 @@ class NoituChecker {
   async checkPhrase(phrase, message) {
     const dict = require(`../../assets/noituTiengVietDictionary.json`);
 
+    if (phrase.split(" ").length <= 1)  return false;
+
     if (!dict[phrase]) {
       const messages = this.channelConfig.wrongWordMessages;
       await this.noiChuError(message, messages.at(getRandomInt(0, this.channelConfig.wrongWordMessages.length)));
@@ -613,7 +615,7 @@ class NoituChecker {
     const startWord = phrase.split(" ")[0];
     if (this.channelConfig.wordUsedList[startWord]) {
       const cache = this.channelConfig.wordUsedList[startWord];
-      if (cache[startWord]) {
+      if (cache[phrase]) {
         await this.noiChuError(message, messages[0]);
         return false;
       } else {

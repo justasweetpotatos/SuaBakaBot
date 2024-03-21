@@ -39,7 +39,7 @@ module.exports = {
   /**
    * Lưu ý: startMsgId hoặc endMessageId nếu undefined hoặc invalid sẽ lập tức lấy message mới nhất và message cũ nhất
    * @param {TextChannel | ThreadChannel | VoiceChannel} targetChannel Target channel to seach.
-   * @param {User} targetUser Target user to seach.
+   * @param {String} targetUserId Target user to seach.
    * @param {String} startMsgId Start message id to find. If null, undefined or not valid, get the last message in channel.
    * @param {String} endMsgId  End message id to find.If null, undefined or not valid, get the first message in channel.
    * @param {Number} amount Number of message to find. If null, undefined or not valid, default is 10.
@@ -48,7 +48,7 @@ module.exports = {
    * bulkDeltableMessages: Collection<String, Message<Boolean>>,
    * userData: Collection<String, { user: User, messages: Message[] }> }>}
    */
-  async findMessages(targetChannel, targetUser, startMsgId, endMsgId, amount) {
+  async findMessages(targetChannel, targetUserId, startMsgId, endMsgId, amount) {
     try {
       let startMsg, endMsg;
       startMsgId
@@ -69,7 +69,7 @@ module.exports = {
           await targetChannel.messages.fetch({ limit: 1, after: startMsg.id })
         ).first();
         if (afterStartMessage) startMsg = afterStartMessage;
-        else if ((targetUser && targetUser.id === startMsg.author.id) || !targetUser) {
+        else if ((targetUserId && targetUserId.id === startMsg.author.id) || !targetUserId) {
           if (startMsg.bulkDeletable) resutlBulkDeltableMessages.set(startMsg.id, startMsg);
           else resutlMessages.set(startMsg.id, startMsg);
           pushData(startMsg, userData);
@@ -88,7 +88,7 @@ module.exports = {
 
         fetchedMessages.every((msg) => {
           if (resutlMessages.size + resutlBulkDeltableMessages.size < amount) {
-            if ((targetUser && targetUser.id === msg.author.id) || !targetUser) {
+            if ((targetUserId && targetUserId === msg.author.id) || !targetUserId) {
               if (!msg.bulkDeletable) resutlMessages.set(msg.id, msg);
               else resutlBulkDeltableMessages.set(msg.id, msg);
               pushData(msg, userData);

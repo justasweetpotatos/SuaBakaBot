@@ -36,7 +36,7 @@ module.exports = {
     try {
       const channel = interaction.channel;
       const amount = interaction.options.get("amount")?.value;
-      const user = interaction.options.get("user")?.value;
+      const userId = interaction.options.get("user")?.value;
       const startMsgId = interaction.options.get("from")?.value;
       const endMsgId = interaction.options.get("to")?.value;
 
@@ -61,7 +61,7 @@ module.exports = {
 
       const { messages, userData, bulkDeltableMessages } = await findMessages(
         channel,
-        user,
+        userId,
         startMsgId,
         endMsgId,
         amount
