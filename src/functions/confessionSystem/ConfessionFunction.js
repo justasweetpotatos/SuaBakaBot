@@ -71,7 +71,9 @@ class ConfessionPost {
       await connector.executeQuery(query, values);
       return true;
     } catch (error) {
-      logger.errors.database(`Error on updating data of post ${this.id} in channel ${this.channelId}: ${error}`);
+      logger.errors.database(
+        `Error on updating data of post ${this.id} in channel ${this.channelId}: ${error}`
+      );
       return false;
     }
   }
@@ -117,7 +119,9 @@ class ConfessionPost {
       await connector.executeQuery(query);
       return true;
     } catch (error) {
-      logger.errors.database(`Error on deleting data of post ${this.id} in channel ${this.channelId}: ${error}`);
+      logger.errors.database(
+        `Error on deleting data of post ${this.id} in channel ${this.channelId}: ${error}`
+      );
       return false;
     }
   }
@@ -218,7 +222,9 @@ class ConfesisonPostChannelManager {
         const createAnonymousPostBtn = autoBuildButton(
           interaction.client.buttons.get(`confession-create-anonymous-post-btn`).data
         );
-        const createPostBtn = autoBuildButton(interaction.client.buttons.get(`confession-create-post-btn`).data);
+        const createPostBtn = autoBuildButton(
+          interaction.client.buttons.get(`confession-create-post-btn`).data
+        );
         const actionRow = new ActionRowBuilder().addComponents([createPostBtn, createAnonymousPostBtn]);
         const postOfGenerator = postParentChannel.threads.create({
           name: `Confession Generator.`,
@@ -295,8 +301,21 @@ class ConfesisonPostChannelManager {
           appliedTags: [confessionPost.anonymous ? aTag.id : nTag.id],
         });
 
+        // Update post id
         confessionPost.id = thread.id;
+        // Update index for next post
         this.countOfConfessionPost += 1;
+
+        // Add create Anonymous reply
+        const button = autoBuildButton(
+          interaction.client.buttons.get(`confession-post-anonymous-reply-btn`).data
+        );
+        const actionRow = new ActionRowBuilder().addComponents([button]);
+
+        const embed = new EmbedBuilder()
+          .setTitle(`Anonymous message generator`)
+          .setDescription(`**Tạo trả lời ẩn danh bằng cách bấm vào nút dưới đây:**`);
+        await thread.send({ embeds: [embed], components: [actionRow] });
 
         // Update data to DB
         await this.update();
@@ -345,7 +364,8 @@ class ConfesisonPostChannelManager {
   async getPost(id) {
     try {
       const post = new ConfessionPost(id);
-      if (!(await post.sync())) throw new Error(`Can't not get post with id ${id}: Post is not exist on DB !`);
+      if (!(await post.sync()))
+        throw new Error(`Can't not get post with id ${id}: Post is not exist on DB !`);
       return post;
     } catch (error) {
       logger.errors.database(`Error on get post from db with id ${id}: ${error}`);

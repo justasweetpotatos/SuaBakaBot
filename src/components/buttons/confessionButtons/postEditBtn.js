@@ -29,6 +29,7 @@ module.exports = {
    */
   async execute(interaction, client) {
     try {
+      await interaction.deferReply({ ephemeral: true });
       const channelPost = interaction.channel;
       const postMessage = interaction.message;
 
