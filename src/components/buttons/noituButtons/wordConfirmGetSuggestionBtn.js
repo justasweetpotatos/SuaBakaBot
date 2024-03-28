@@ -1,5 +1,4 @@
 const { ButtonStyle, ButtonInteraction, Client, EmbedBuilder, Colors } = require("discord.js");
-const { NoituTiengVietChannelConfig } = require("../../../typings");
 const { NoituChecker } = require("../../../functions/noichu/noichuFunction");
 
 module.exports = {

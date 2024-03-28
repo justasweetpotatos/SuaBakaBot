@@ -1,16 +1,18 @@
-const { SlashCommandSubcommandBuilder, SlashCommandChannelOption, EmbedBuilder, Colors, Embed } = require("discord.js");
+const { SlashCommandSubcommandBuilder, SlashCommandChannelOption } = require("discord.js");
 
-const { removeChannel, NoichuGuildManager } = require(`../../functions/noichu/noichuFunction`);
+const { NoichuGuildManagerSystem } = require("../../functions/noichu/manager");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
     .setName("remove")
     .setDescription("Rmove kênh để chơi nối chữ ! (Thao tác không xóa kênh)")
-    .addChannelOption(new SlashCommandChannelOption().setName(`channel`).setDescription(`Channel`).setRequired(true)),
+    .addChannelOption(
+      new SlashCommandChannelOption().setName(`channel`).setDescription(`Channel`).setRequired(true)
+    ),
   /**
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction, client) {
-    await new NoichuGuildManager().removeChannel(interaction, interaction.channelId);
+    await new NoichuGuildManagerSystem(interaction.guild).unsetChannel(interaction, interaction.channel);
   },
 };

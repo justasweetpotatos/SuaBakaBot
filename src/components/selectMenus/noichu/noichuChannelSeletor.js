@@ -1,5 +1,5 @@
 const { ChannelType, Client } = require("discord.js");
-const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
+const { NoichuChannelManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
@@ -15,7 +15,7 @@ module.exports = {
   async execute(interaction, client) {
     if (interaction.isChannelSelectMenu()) {
       const targetChannel = interaction.channels.first();
-      await new NoichuGuildManager().configChannel(interaction, targetChannel.id, client);
+      await new NoichuChannelManager(interaction.guild, targetChannel).sendSettingEditInterface(interaction);
     }
   },
 };

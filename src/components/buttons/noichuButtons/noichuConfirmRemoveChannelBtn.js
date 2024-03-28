@@ -1,5 +1,5 @@
-const { ButtonStyle, EmbedBuilder, Colors, ActionRowBuilder } = require("discord.js");
-const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
+const { ButtonStyle } = require("discord.js");
+const { NoichuGuildManagerSystem } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
@@ -14,7 +14,9 @@ module.exports = {
    * @returns
    */
   async execute(interaction, client) {
-    await new NoichuGuildManager().removeChannel(interaction, interaction.message.embeds[0].title.match(/\d+/)[0]);
-    await interaction.message.delete();
+    const channel = await interaction.guild.channels.fetch(
+      interaction.message.embeds[0].title.match(/\d+/)[0]
+    );
+    await new NoichuGuildManagerSystem(interaction.guild).unsetChannel(interaction, channel);
   },
 };

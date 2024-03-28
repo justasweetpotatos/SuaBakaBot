@@ -10,7 +10,7 @@ const {
   EmbedBuilder,
 } = require("discord.js");
 const { NoichuChannelConfig } = require("../../../typings");
-const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
+const { NoichuChannelManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
@@ -26,14 +26,11 @@ module.exports = {
   async execute(interaction, client) {
     const embed = interaction.message.embeds[0];
     const targetChannelId = embed.title.match(/\d+/)[0];
+    const targetChannel = await interaction.guild.channels.fetch(embed.title.match(/\d+/)[0]);
 
-    const channelConfig = new NoichuChannelConfig(targetChannelId, interaction.guildId);
-    if (!(await channelConfig.sync(targetChannelId))) {
+    const channelManager = new NoichuChannelManager(interaction.guild, targetChannel);
+    if (!(await channelManager.checkConfigIsAvailable(interaction))) {
       await interaction.message.delete();
-      await interaction.reply({
-        ephemeral: true,
-        embeds: [new EmbedBuilder().setTitle(`Config has been deleted !`).setColor(Colors.Red)],
-      });
       return;
     }
 
@@ -66,9 +63,8 @@ module.exports = {
         return;
       }
 
-      await new NoichuGuildManager().setMaxWords(modalInteraction, targetChannelId, amount.valueOf());
-      await channelConfig.sync();
-      await interaction.editReply({ embeds: [channelConfig.createConfigEmbed()] });
+      await channelManager.setLimit(modalInteraction, amount.valueOf());
+      await interaction.editReply({ embeds: [channelManager.channelConfig.createConfigEmbed()] });
     });
   },
 };

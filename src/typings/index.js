@@ -1,6 +1,6 @@
 const logger = require("../utils/logger");
 const { connector } = require("../database/connection");
-const { EmbedBuilder, Colors, Embed } = require("discord.js");
+const { EmbedBuilder, Colors, Embed, Role } = require("discord.js");
 const { GuildGlobalConfig } = require("../functions/guildConfig/guildGlobalConfig");
 
 const noichuMessageTypes = {
@@ -331,11 +331,13 @@ class GuildConfig {
    * @param {String} id
    * @param {String} name
    * @param {Number} limOfNoichuChannel
+   * @param {JSON<Role>} botManagerRoles
    */
   constructor(id, name, limOfNoichuChannel) {
     this.id = null;
     this.name = "";
     this.limOfNoichuChannel = 1;
+    this.botManagerRoles = {};
 
     if (!id) throw new Error(`Id must not be null`);
 
@@ -352,8 +354,15 @@ class GuildConfig {
       const query = `SELECT COUNT(*) AS \`count\` FROM ${this.guildDBName}.noichu_channels;`;
       return await connector.executeQuery(query)[0]?.count;
     } catch (error) {
-      logger.errors.database(`Error on getting number of noichu channel in guild with id ${this.id}: ${error}`);
+      logger.errors.database(
+        `Error on getting number of noichu channel in guild with id ${this.id}: ${error}`
+      );
     }
+  }
+
+  async checkDB() {
+    try {
+    } catch (error) {}
   }
 
   async sync() {
@@ -388,14 +397,14 @@ class GuildConfig {
       limOfNoichuChannel ? (this.limOfNoichuChannel = limOfNoichuChannel) : "";
 
       const query = `
-        INSERT INTO ${this.guildDBName}.guild_info (id, name, lim_of_noichu_channel) 
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY 
-        UPDATE 
+        INSERT INTO ${this.guildDBName}.guild_info (id, name, lim_of_noichu_channel, manager_roles) 
+        VALUES (?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE 
         name = VALUES(name),
-        lim_of_noichu_channel = VALUES(lim_of_noichu_channel)
+        lim_of_noichu_channel = VALUES(lim_of_noichu_channel),
+        manager_roles = VALUES(manager_roles);
       `;
-      const values = [this.id, this.name, this.limOfNoichuChannel];
+      const values = [this.id, this.name, this.limOfNoichuChannel, this.botManagerRoles];
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
@@ -418,7 +427,7 @@ class ReactionRoleMessageConfig {
   }
 
   /**
-   * 
+   *
    * @returns {Promise<Boolean>}
    */
   async sync() {

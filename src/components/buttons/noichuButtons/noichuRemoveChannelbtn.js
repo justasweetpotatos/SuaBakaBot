@@ -1,6 +1,13 @@
-const { ButtonStyle, EmbedBuilder, Colors, ActionRowBuilder, ButtonInteraction, Client } = require("discord.js");
+const {
+  ButtonStyle,
+  EmbedBuilder,
+  Colors,
+  ActionRowBuilder,
+  ButtonInteraction,
+  Client,
+} = require("discord.js");
 const { autoBuildButton } = require("../../../utils/autoBuild");
-const { NoichuChannelConfig } = require("../../../typings");
+const { NoichuGuildManager } = require("../../../utils/initial/manager");
 
 module.exports = {
   data: {
@@ -16,16 +23,14 @@ module.exports = {
   async execute(interaction, client) {
     const targetChannelId = interaction.message.embeds[0].title.match(/\d+/)[0];
 
-    const config = new NoichuChannelConfig(targetChannelId, interaction.guildId);
+    const manager = new NoichuGuildManager(interaction.guild);
 
-    if (!(await config.sync(targetChannelId))) {
-      await interaction.message.delete();
-      await interaction.reply({
-        ephemeral: true,
-        embeds: [new EmbedBuilder().setTitle(`Config has been deleted !`).setColor(Colors.Red)],
-      });
-      return;
-    }
+    const status = await manager.unsetChannel(
+      interaction,
+      await interaction.guild.channels.fetch(targetChannelId)
+    );
+
+    if (!status) interaction.message.deletable ? await interaction.message.delete() : "";
 
     const embed = new EmbedBuilder()
       .setTitle(`Bạn có muốn loại kênh nối chữ <#${targetChannelId}> không ?`)

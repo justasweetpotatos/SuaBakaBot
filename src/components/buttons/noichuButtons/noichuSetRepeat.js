@@ -1,6 +1,5 @@
-const { ButtonStyle, ButtonInteraction, EmbedBuilder, Colors } = require("discord.js");
-const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
-const { NoichuChannelConfig } = require("../../../typings");
+const { ButtonStyle, ButtonInteraction } = require("discord.js");
+const { NoichuChannelManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
@@ -13,21 +12,13 @@ module.exports = {
    * @param {Client} client
    */
   async execute(interaction, client) {
-    const targetChannelId = interaction.message.embeds[0].title.match(/\d+/)[0];
+    const interactionEmbed = interaction.message.embeds[0];
+    const targetChannel = await interaction.guild.channels.fetch(interactionEmbed.title.match(/\d+/)[0]);
+    const channelManager = new NoichuChannelManager(interaction.guild, targetChannel);
 
-    const channelConfig = new NoichuChannelConfig(targetChannelId, interaction.guildId);
-
-    if (!(await channelConfig.sync())) {
+    if (!(await channelManager.setRepeated(interaction))) {
       await interaction.message.delete();
-      await interaction.reply({
-        ephemeral: true,
-        embeds: [new EmbedBuilder().setTitle(`Config has been deleted !`).setColor(Colors.Red)],
-      });
       return;
-    } else {
-      await new NoichuGuildManager().setRepeated(interaction, targetChannelId);
-      await channelConfig.sync();
-      await interaction.message.edit({ embeds: [channelConfig.createConfigEmbed()] });
     }
   },
 };

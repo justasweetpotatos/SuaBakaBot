@@ -1,6 +1,5 @@
-const { ButtonStyle, Client, EmbedBuilder, Colors } = require("discord.js");
-const { NoichuGuildManager } = require("../../../functions/noichu/noichuFunction");
-const { NoichuChannelConfig } = require("../../../typings");
+const { ButtonStyle, Client } = require("discord.js");
+const { NoichuGuildManagerSystem } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
@@ -16,21 +15,8 @@ module.exports = {
    */
   async execute(interaction, client) {
     const embedTitle = interaction.message.embeds[0]?.title;
-    const channelId = embedTitle.match(/\d+/)[0];
-
-    const channelConfig = new NoichuChannelConfig(channelId, interaction.guildId);
-
-    if (await channelConfig.sync()) {
-      const embed = new EmbedBuilder()
-        .setTitle(`Bạn đã set kênh này rồi, vui lòng chọn kênh khác !`)
-        .setColor(Colors.Yellow);
-      const message = await interaction.reply({ embeds: [embed] });
-      setTimeout(async () => {
-        await message.delete();
-      }, 5000);
-      return;
-    }
-
-    await new NoichuGuildManager().setChannel(interaction, channelId);
+    const targetChannelId = embedTitle.match(/\d+/)[0];
+    const channel = await interaction.guild.channels.fetch(targetChannelId);
+    await new NoichuGuildManagerSystem(interaction.guild).setChannel(interaction, channel);
   },
 };

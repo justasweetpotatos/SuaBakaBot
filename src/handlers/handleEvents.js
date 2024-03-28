@@ -39,7 +39,7 @@ module.exports = (client) => {
             } else logger.errors.eventRegiter(`Invalid event file: ${file}. Missing required properties.`);
           }
           break;
-        case "guildEvents":
+        case "guild":
           for (const file of eventFiles) {
             const event = require(`../events/${folder}/${file}`);
             if (event.once) {

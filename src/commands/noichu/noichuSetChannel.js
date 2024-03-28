@@ -1,6 +1,6 @@
-const { SlashCommandSubcommandBuilder, SlashCommandChannelOption, EmbedBuilder, Colors } = require("discord.js");
+const { SlashCommandSubcommandBuilder, SlashCommandChannelOption } = require("discord.js");
 
-const { setChannel, NoichuGuildManager } = require(`../../functions/noichu/noichuFunction`);
+const { NoichuGuildManagerSystem } = require("../../functions/noichu/manager");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -11,6 +11,6 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction, client) {
-    await new NoichuGuildManager().setChannel(interaction, interaction.options?.get(`channel`));
+    await new NoichuGuildManagerSystem(interaction.guild).setChannel(interaction, interaction.channel);
   },
 };

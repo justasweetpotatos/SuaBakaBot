@@ -7,7 +7,7 @@ const {
   ChannelType,
 } = require("discord.js");
 const { autoBuildChannelMenu, autoBuildButton } = require("../../utils/autoBuild");
-const { NoichuGuildManager } = require("../../functions/noichu/noichuFunction");
+const { NoichuChannelManager } = require("../../functions/noichu/manager");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -27,7 +27,7 @@ module.exports = {
   async execute(interaction, client) {
     await interaction.deferReply({ ephemeram: false });
 
-    const targetChannel = interaction.options.get(`channel`);
+    const targetChannel = interaction.options.get(`channel`).channel;
 
     if (!targetChannel) {
       const selectChannelMenu = autoBuildChannelMenu(client.selectMenus.get(`noichu-channel-selector`).data);
@@ -45,6 +45,6 @@ module.exports = {
       return;
     }
 
-    await new NoichuGuildManager().configChannel(interaction, targetChannel.id, client);
+    const manager = new NoichuChannelManager(interaction.guild, targetChannel);
   },
 };
