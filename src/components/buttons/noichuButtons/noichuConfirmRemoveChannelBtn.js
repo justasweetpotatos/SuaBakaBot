@@ -1,5 +1,5 @@
 const { ButtonStyle } = require("discord.js");
-const { NoichuGuildManagerSystem } = require("../../../functions/noichu/manager");
+const { NoichuGuildManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
@@ -17,6 +17,6 @@ module.exports = {
     const channel = await interaction.guild.channels.fetch(
       interaction.message.embeds[0].title.match(/\d+/)[0]
     );
-    await new NoichuGuildManagerSystem(interaction.guild).unsetChannel(interaction, channel);
+    await new NoichuGuildManager(interaction.guild).unsetChannel(interaction, channel);
   },
 };

@@ -15,7 +15,7 @@ const { NoichuChannelConfig, GuildConfig } = require("../../typings");
 const { sendNotificationEmbedMessage, MessageWarnLevel, sendEmbedMsssage } = require("../../utils/message");
 const { autoBuildButton } = require("../../utils/autoBuild");
 
-class NoichuGuildManagerSystem {
+class NoichuGuildManager {
   /**
    *
    * @param {Guild} guild
@@ -373,4 +373,4 @@ class NoichuChannelManager {
   }
 }
 
-module.exports = { NoichuGuildManagerSystem, NoichuChannelManager };
+module.exports = { NoichuGuildManager, NoichuChannelManager };

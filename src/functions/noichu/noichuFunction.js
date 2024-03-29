@@ -442,4 +442,4 @@ class NoituChecker {
   }
 }
 
-module.exports = { NoichuGuildManager, NoichuChecker, NoituChecker };
+module.exports = { NoichuChecker, NoituChecker };

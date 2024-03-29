@@ -132,7 +132,10 @@ class GuildGlobalConfig {
           `Created DB for guild with id ${guildId} and with name guild_${guildId}, reason: No DB with name: guild_${guildId}`
         );
         return true;
-      } else logger.errors.database(`Error on cheking guild DB with id ${guildId}: ${error}`);
+      } else {
+        console.log(error);
+        logger.errors.database(`Error on cheking guild DB with id ${guildId}: ${error}`);
+      }
     }
   }
 }

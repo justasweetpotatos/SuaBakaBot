@@ -7,7 +7,7 @@ const {
   Client,
 } = require("discord.js");
 const { autoBuildButton } = require("../../../utils/autoBuild");
-const { NoichuGuildManager } = require("../../../utils/initial/manager");
+const { NoichuGuildManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
   data: {
