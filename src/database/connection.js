@@ -2,7 +2,7 @@ const mysql = require("mysql");
 const logger = require("../utils/logger");
 const host = `localhost`;
 const user = `root`;
-const password = `NhuCoBacHoTrongNgayVuiDaiThang156@!RT`;
+const password = ``;
 
 class Connector {
   constructor() {
@@ -10,7 +10,7 @@ class Connector {
       host: "localhost",
       user: "root",
       password: "password",
-      port: 3366,
+      port: 3306,
     });
   }
 

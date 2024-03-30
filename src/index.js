@@ -3,6 +3,7 @@ const { TOKEN } = process.env;
 const { Client, Collection, GatewayIntentBits, REST, ActivityType } = require("discord.js");
 const fs = require("fs");
 const logger = require("./utils/logger");
+const { AuthSessionManager } = require("./functions/discordAuth/session/sessionManager");
 
 const client = new Client({
   intents: [
@@ -27,7 +28,7 @@ client.unloadedSubcommands = new Collection();
 client.commandNameList = [];
 
 client.clientId = "1168430797599019022";
-client.guildIdList = [`1084323144870940772`, `811939594882777128`];
+client.guildIdList = [`1084323144870940772`];
 client.rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
 client.commandPaths = new Collection();
@@ -44,6 +45,8 @@ for (const folder of fs.readdirSync("./src/functions")) {
 for (const handlerPath of fs.readdirSync(`./src/handlers`)) {
   require(`./handlers/${handlerPath}`)(client);
 }
+
+client.authSessionManager = new AuthSessionManager(client);
 
 client.handleEvents();
 client.handleCommands();

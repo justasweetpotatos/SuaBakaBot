@@ -7,6 +7,7 @@ const {
   EmbedBuilder,
   ActionRow,
 } = require("discord.js");
+const logger = require("./logger");
 
 /**
  *
@@ -14,7 +15,7 @@ const {
  * @param {Number} time - Miliseconds
  */
 async function deleteMessage(message, time) {
-  setTimeout(async () => (message.deletable ? await message.delete() : ""), time);
+  setTimeout(async () => (message?.deletable ? await message.delete() : ""), time);
 }
 
 class MessageWarnLevel {
@@ -31,13 +32,21 @@ class MessageWarnLevel {
  * @param {String} content
  * @param {MessageWarnLevel} messageWarnLevel
  * @param {Boolean} ephemeral
+ * @param {Boolean} deleteMessage
  */
-async function sendNotificationEmbedMessage(interaction, channel, content, messageWarnLevel, ephemeral) {
+async function sendNotificationEmbedMessage(
+  interaction,
+  channel,
+  content,
+  messageWarnLevel,
+  ephemeral,
+  deleteMessage
+) {
   let embedColor, embedTitle;
 
   // Xác định màu sắc cho tin nhắn dựa trên mức độ cảnh báo
   switch (messageWarnLevel) {
-    case messageWarnLevel.NORMAL:
+    case messageWarnLevel.SUCCESS:
       embedColor = Colors.Green; // Màu xanh lá cây cho thông báo bình thường
       embedTitle = `Thao tác thành công !`;
       break;
@@ -58,14 +67,24 @@ async function sendNotificationEmbedMessage(interaction, channel, content, messa
   const embed = new EmbedBuilder()
     .setTitle(embedTitle)
     .setColor(embedColor)
-    .setDescription(`*${content ? content : "No content"}*`)
+    .setDescription(`${content ? content : "No content"}`)
     .setTimestamp(new Date().getTime());
 
-  if (interaction) {
-    interaction.deferred ? "" : await interaction.deferReply({ ephemeral: ephemeral });
-    await deleteMessage(await interaction.editReply({ embeds: [embed] }), 5000);
-  } else if (channel) {
-    await deleteMessage(await channel.send({ embeds: [embed] }), 5000);
+  try {
+    if (interaction) {
+      interaction.deferred ? "" : await interaction.deferReply({ ephemeral: ephemeral });
+      if (!ephemeral) {
+        const message = await interaction.editReply({ embeds: [embed] });
+        if (deleteMessage) await deleteMessage(message, 5000);
+      }
+      await interaction.editReply({ embeds: [embed] });
+    } else if (channel) {
+      const message = await channel.send({ embeds: [embed] });
+      if (deleteMessage) await deleteMessage(message, 5000);
+    }
+  } catch (error) {
+    logger.errors.server(`DELETE_MESSAGE_ERROR: ${error}`);
+    console.log(error);
   }
 }
 
@@ -79,6 +98,7 @@ async function sendNotificationEmbedMessage(interaction, channel, content, messa
  * @param {Colors} color
  * @param {Boolean} setCreatedTimestamp
  * @param {Booleans} ephemeral
+ * @param {Boolean} deleteMessage
  * @returns {Promise<VoidFunction>}
  */
 async function sendEmbedMsssage(
@@ -89,18 +109,32 @@ async function sendEmbedMsssage(
   components,
   color,
   setCreatedTimestamp,
-  ephemeral
+  ephemeral,
+  deleteMessage
 ) {
-  const embed = new EmbedBuilder()
-    .setTitle(title)
-    .setDescription(`*${content}*`)
-    .setColor(color ? color : Colors.Aqua)
-    .setTimestamp(setCreatedTimestamp ? new Date().getTime() : undefined);
-  if (interaction) {
-    interaction.deferred ? "" : interaction.deferReply({ ephemeral: ephemeral });
-    await deleteMessage(await interaction.editReply({ embeds: [embed], components: components }), 5000);
-  } else if (channel) {
-    await deleteMessage(await channel.send({ embeds: [embed], components: components }));
+  const embed = new EmbedBuilder({
+    title: title,
+    description: `*${content}*`,
+    color: color ? color : Colors.Aqua,
+    timestamp: setCreatedTimestamp ? new Date().getTime() : undefined,
+  });
+  try {
+    if (interaction) {
+      interaction.deferred ? "" : await interaction.deferReply({ ephemeral: ephemeral });
+
+      const message = await interaction.editReply({ embeds: [embed], components: components });
+
+      if (ephemeral) return;
+
+      if (deleteMessage) await deleteMessage(message);
+    } else if (channel) {
+      const message = await channel.send({ embeds: [embed], components: components });
+
+      if (deleteMessage) await deleteMessage(message);
+    }
+  } catch (error) {
+    logger.errors.server(error);
+    console.log(error);
   }
 }
 
