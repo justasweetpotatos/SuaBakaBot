@@ -4,7 +4,7 @@ const {
   Client,
   SlashCommandSubcommandBuilder,
 } = require("discord.js");
-const { bindAction } = require("../../functions/discordAuth/action/bindAction");
+const { bindAction } = require("../../functions/discordAuth/actions/bindAction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
