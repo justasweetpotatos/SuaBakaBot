@@ -46,7 +46,8 @@ for (const handlerPath of fs.readdirSync(`./src/handlers`)) {
   require(`./handlers/${handlerPath}`)(client);
 }
 
-client.authSessionManager = new AuthSessionManager(client);
+client.authSessionManager = new AuthSessionManager();
+await client.authSessionManager.syncPlayerProfiles();
 
 client.handleEvents();
 client.handleCommands();

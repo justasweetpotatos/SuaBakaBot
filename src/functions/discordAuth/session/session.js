@@ -1,13 +1,14 @@
+const { PlayerProfile } = require(`../storage/playerProfile`);
+
 class Session {
   /**
    *
-   * @param {String} id
-   * @param {String} userId
+   * @param {String} id Discord user id
+   * @param {String} playerUUID Minecraft player UUID
    */
-  constructor(id, userId) {
+  constructor(id, playerUUID) {
     this.id = id;
-    this.userId = userId;
-    this.playerUUID = "";
+    this.playerProfile = new PlayerProfile(playerUUID);
     this.authCode = new Date().getTime().toString();
   }
 }

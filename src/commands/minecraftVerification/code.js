@@ -4,6 +4,7 @@ const {
   Client,
   SlashCommandSubcommandBuilder,
 } = require("discord.js");
+const { bindAction } = require("../../functions/discordAuth/action/bindAction");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -19,6 +20,6 @@ module.exports = {
    */
   async execute(interaction, client) {
     const verifyCode = interaction.options.get(`code`).value;
-    await client.authSessionManager.checkAuthCode(interaction, interaction.user, verifyCode);
+    await bindAction(interaction, verifyCode);
   },
 };

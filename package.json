@@ -6,7 +6,8 @@
     "axios": "^1.6.7",
     "discord.js": "^14.12.1",
     "dotenv": "^16.4.5",
-    "mysql": "^2.18.1"
+    "mysql": "^2.18.1",
+    "sqlite3": "^5.1.7"
   },
   "scripts": {
     "start": "node ./src/index.js",

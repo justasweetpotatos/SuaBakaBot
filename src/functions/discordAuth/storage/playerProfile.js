@@ -7,6 +7,7 @@ class PlayerProfile {
    */
   constructor(uuid) {
     this.uuid = uuid;
+    this.name = "";
     this.ipAddress = "";
     this.discordId = "";
     this.authMode = AuthMode.UNRECOGNIZED;
