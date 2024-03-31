@@ -11,6 +11,7 @@ module.exports = {
    */
   async bindAction(interaction, verifyCode) {
     const authSessionManager = interaction.client.authSessionManager;
+    const user = interaction.user;
     await authSessionManager.syncPlayerProfiles();
     if (authSessionManager.isUserHasASession(user)) {
       const session = authSessionManager.getSession(user);
@@ -26,6 +27,7 @@ module.exports = {
       }
 
       session.playerProfile.authMode = AuthMode.CONFIRMED;
+      session.playerProfile.discordId = user.id;
 
       authSessionManager.removeSession(user);
       const playerRepository = new PlayerRepository();

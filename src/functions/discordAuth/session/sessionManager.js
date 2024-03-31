@@ -79,7 +79,7 @@ class AuthSessionManager {
         await sendNotificationEmbedMessage(
           interaction,
           undefined,
-          `Bạn chưa kết thúc phiên xác minh trước đó, vui lòng tắt trước khi mở một phiên xác minh mới !`,
+          `*Tài khoản minecraft này đã được bind, vui lòng chọn tài khoản khác !\nNếu có lỗi, hãy liên hệ ngay với admin !*`,
           MessageWarnLevel.WARNING,
           true
         );
@@ -89,6 +89,16 @@ class AuthSessionManager {
       const session = new Session(user.id, playerUUID);
       session.playerProfile = this.getPlayerProfileByUUID(playerUUID);
       this.sessions.set(user.id, session);
+
+      await sendNotificationEmbedMessage(
+        interaction,
+        undefined,
+        `Đây là mã xác minh của bạn: **${session.authCode}**
+        Sử dụng lệnh \`/mc-server code\` để xác minh bằng mã này !
+        Mã có hiệu lực trong 5 phút !`,
+        MessageWarnLevel.INFO,
+        true
+      );
 
       setTimeout(() => {
         this.removeSession(user);
@@ -135,7 +145,7 @@ class AuthSessionManager {
    * @returns {Boolean}
    */
   isLinkedMinecraftAccount(playerUUID) {
-    return this.playerProfiles.has(playerUUID);
+    return this.playerProfiles.get(playerUUID).discordId ? true : false;
   }
 
   /**
@@ -152,12 +162,20 @@ class AuthSessionManager {
   }
 
   /**
-   * 
-   * @param {String} playerUUID 
+   *
+   * @param {String} playerUUID
    * @returns {PlayerProfile}
    */
   getPlayerProfileByUUID(playerUUID) {
     return this.playerProfiles.get(playerUUID);
+  }
+
+  /**
+   * @param {User} user
+   * @returns {Session}
+   */
+  getSession(user) {
+    return this.sessions.get(user.id);
   }
 }
 

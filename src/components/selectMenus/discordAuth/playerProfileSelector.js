@@ -11,6 +11,6 @@ module.exports = {
    */
   async execute(interaction, client) {
     const option = interaction.values[0];
-    await client.authSessionManager.createSession(interaction, interaction.user, option);
+    await client.authSessionManager.createSession(interaction, option);
   },
 };

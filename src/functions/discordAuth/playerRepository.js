@@ -55,7 +55,7 @@ class PlayerRepository {
       await connector.executeQuery(query, values);
       return true;
     } catch (error) {
-      logger.errors.database(`SELECT_PLAYER_PROFILE_ERROR: Player uuid>>${playerProfile.uuid}: ${error}`);
+      logger.errors.database(`UPDATE_PLAYER_PROFILE_ERROR: Player uuid>>${playerProfile.uuid}: ${error}`);
       return false;
     }
   }
