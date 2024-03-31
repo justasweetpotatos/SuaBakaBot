@@ -47,7 +47,7 @@ for (const handlerPath of fs.readdirSync(`./src/handlers`)) {
 }
 
 client.authSessionManager = new AuthSessionManager();
-await client.authSessionManager.syncPlayerProfiles();
+(async ()=>{await client.authSessionManager.syncPlayerProfiles();})()
 
 client.handleEvents();
 client.handleCommands();

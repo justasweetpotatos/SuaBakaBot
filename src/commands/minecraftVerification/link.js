@@ -21,7 +21,7 @@ module.exports = {
    * @param {Client} client
    */
   async execute(interaction, client) {
-    const verifyChannelId = "1223592003191836703";
+    const verifyChannelId = "1223555669781774467";
 
     if (interaction.channelId !== verifyChannelId) {
       await sendNotificationEmbedMessage(
