@@ -47,7 +47,7 @@ class PlayerRepository {
   async updateProfile(playerProfile) {
     try {
       const query = `
-            UPDATE player_profiles
+            UPDATE minecraft_db.player_profiles
             SET discord_id = ?, discord_verify_mode = ?
             WHERE uuid = ?;
         `;

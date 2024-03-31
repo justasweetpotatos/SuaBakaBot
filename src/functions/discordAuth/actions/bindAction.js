@@ -1,6 +1,7 @@
 const { CommandInteraction, ButtonInteraction } = require("discord.js");
 const { MessageWarnLevel, sendNotificationEmbedMessage } = require("../../../utils/message");
 const { PlayerRepository } = require("../playerRepository");
+const { AuthMode } = require("../authMode");
 
 module.exports = {
   /**
@@ -23,6 +24,8 @@ module.exports = {
         );
         return;
       }
+
+      session.playerProfile.authMode = AuthMode.CONFIRMED;
 
       authSessionManager.removeSession(user);
       const playerRepository = new PlayerRepository();

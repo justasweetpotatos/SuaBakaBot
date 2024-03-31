@@ -31,11 +31,11 @@ module.exports = {
 
     const chunkedOptions = (() => {
       const res = [];
-      for (let i = 0; i <= options.length; i += 25) res.push(options.slice(i, (i += options.length)));
+      for (let i = 0; i < options.length; i += 25) res.push(options.slice(i, (i += options.length)));
       return res;
     })();
 
-    if (pageIndex + 1 >= options.length) {
+    if (pageIndex >= chunkedOptions.length) {
       pageIndex = 1;
     } else {
       pageIndex += 1;

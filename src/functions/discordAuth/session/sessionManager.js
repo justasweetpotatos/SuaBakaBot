@@ -28,7 +28,11 @@ class AuthSessionManager {
       const results = await connector.executeQuery(query);
       const playerProfiles = new Collection();
       for (const profile of results) {
-        playerProfiles.set(profile.uuid, profile);
+        const playerProfile = new PlayerProfile(profile.uuid);
+        playerProfile.name = profile.name;
+        playerProfile.ipAddress = profile.ip;
+        playerProfile.discordId = profile.discord_id;
+        playerProfiles.set(profile.uuid, playerProfile);
       }
       return playerProfiles;
     } catch (error) {
@@ -47,7 +51,7 @@ class AuthSessionManager {
    */
   async createSession(interaction, playerUUID) {
     try {
-      this.playerProfiles = await this.getPlayerProfiles();
+      await this.syncPlayerProfiles();
       const user = interaction.user;
       if (this.isUserHasASession(user)) {
         await sendNotificationEmbedMessage(
@@ -83,6 +87,7 @@ class AuthSessionManager {
       }
 
       const session = new Session(user.id, playerUUID);
+      session.playerProfile = this.getPlayerProfileByUUID(playerUUID);
       this.sessions.set(user.id, session);
 
       setTimeout(() => {
@@ -119,7 +124,7 @@ class AuthSessionManager {
   isLinkedDiscordAccount(user) {
     let status = false;
     this.playerProfiles.forEach((profile) => {
-      if (profile.discord_id == user.id) status = true;
+      if (profile.discordId == user.id) status = true;
     });
     return status;
   }
@@ -141,9 +146,18 @@ class AuthSessionManager {
   getPlayerProfile(user) {
     let result = undefined;
     this.playerProfiles.forEach((profile) => {
-      if (profile.discordId === user.id) result = profile;
+      if (profile.discordId == user.id) result = profile;
     });
     return result;
+  }
+
+  /**
+   * 
+   * @param {String} playerUUID 
+   * @returns {PlayerProfile}
+   */
+  getPlayerProfileByUUID(playerUUID) {
+    return this.playerProfiles.get(playerUUID);
   }
 }
 
