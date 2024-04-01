@@ -397,7 +397,7 @@ class GuildConfig {
       limOfNoichuChannel ? (this.limOfNoichuChannel = limOfNoichuChannel) : "";
 
       const query = `
-        INSERT INTO ${this.guildDBName}.guild_info (id, name, lim_of_noichu_channel, manager_roles) 
+        INSERT INTO ${this.guildDBName}.guild_info (id, \`name\`, lim_of_noichu_channel, manager_roles) 
         VALUES (?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
         \`name\` = VALUES(\`name\`),
@@ -405,6 +405,8 @@ class GuildConfig {
         manager_roles = VALUES(manager_roles);
       `;
       const values = [this.id, this.name, this.limOfNoichuChannel, this.botManagerRoles];
+      console.log(query);
+      console.log(values);
       await connector.executeQuery(query, values);
       return true;
     } catch (err) {
