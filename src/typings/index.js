@@ -400,7 +400,7 @@ class GuildConfig {
         INSERT INTO ${this.guildDBName}.guild_info (id, name, lim_of_noichu_channel, manager_roles) 
         VALUES (?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
-        name = VALUES(name),
+        \`name\` = VALUES(\`name\`),
         lim_of_noichu_channel = VALUES(lim_of_noichu_channel),
         manager_roles = VALUES(manager_roles);
       `;
