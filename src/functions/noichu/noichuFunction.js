@@ -84,7 +84,7 @@ class NoichuChecker {
         await this.noiChuError(message, messages.at(getRandomInt(0, 3)));
         return false;
       }
-    } else return await checkWord(word, message);
+    } else return await this.checkWord(word, message);
 
     return true;
   }
@@ -415,7 +415,7 @@ class NoituChecker {
     try {
       const authorId = message.author.id;
 
-      if (message.content.startsWith(`>`)) return;
+      if (message.content.startsWith(`>`)) return false;
       if (!(await this.syncConfig())) return false;
 
       let phrase = message.content.toLowerCase();
