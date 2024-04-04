@@ -1,4 +1,4 @@
-const { Client, SlashCommandBuilder } = require("discord.js");
+const { Client } = require("discord.js");
 const { Routes } = require("discord-api-types/v10");
 const logger = require("../utils/logger");
 
@@ -18,7 +18,7 @@ module.exports = {
             body: client.commandJSONArray,
           });
         } catch (error) {
-          ogger.error(error);
+          logger.errors.command(error);
         }
       }
       logger.log.command("Successfully reloaded application (/) commands.");

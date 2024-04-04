@@ -1,4 +1,12 @@
-const { User, Message, Collection, TextChannel, ThreadChannel, VoiceChannel } = require("discord.js");
+const {
+  User,
+  Message,
+  Collection,
+  TextChannel,
+  ThreadChannel,
+  VoiceChannel,
+  TextBasedChannel,
+} = require("discord.js");
 const logger = require("../../utils/logger");
 
 /**
@@ -21,127 +29,130 @@ function pushData(message, userDataCollection) {
 }
 
 /**
- * @param {Collection<String, {
- *  user: User,
- *  messages: Array<Message>
- * }>} userDataCollection
- * @param {Collection<Message>} resutlMessages
- * @param {Collection<Message>} resutlBulkDeltableMessages
- * @param {Message} message
- * @param {String} targetUserId
+ *
+ * @param {Message} targetMessage
+ * @param {User} targetUser
  */
-function checkIsBulkDeletableAndSet(
-  userDataCollection,
-  resutlMessages,
-  resutlBulkDeltableMessages,
-  message,
-  targetUserId
-) {
-  try {
-    if (!checkIsRigthUserTarget(message, targetUserId)) return;
-
-    message.bulkDeletable
-      ? resutlBulkDeltableMessages.set(message.id, message)
-      : resutlMessages.set(message.id, message);
-
-    pushData(message, userDataCollection);
-  } catch (error) {
-    logger.errors.server(`SEACHING_MESSAGE_CHECK_BULK_DELETABLE_MESSAGE: ${error}`);
-  }
+function checkIsRigthUserTarget(targetMessage, targetUser) {
+  return targetUser ? targetUser.id === targetMessage.author.id : true;
 }
 
 /**
  *
- * @param {Message} message
- * @param {String} targetUserId
+ * @param {{
+ * startMsg: Message,
+ * targetChannel: TextBasedChannel
+ * }} data
+ * @returns {Promise<Collection<String, Message<Boolean>>>}
  */
-function checkIsRigthUserTarget(message, targetUserId) {
-  return targetUserId ? targetUserId === message.author.id : true;
+async function fetchMessages(data) {
+  if (!data.startMsg) data.startMsg = (await data.targetChannel.messages.fetch({ limit: 1 })).first();
+  return new Collection()
+    .set(data.startMsg.id, data.startMsg)
+    .concat(await data.targetChannel.messages.fetch({ before: data.startMsg.id, limit: 100 }));
 }
 
 module.exports = {
   /**
-   * Lưu ý: startMsgId hoặc endMessageId nếu undefined hoặc invalid sẽ lập tức lấy message mới nhất và message cũ nhất
-   * @param {TextChannel | ThreadChannel | VoiceChannel} targetChannel Target channel to seach.
-   * @param {String} targetUserId Target user to seach.
-   * @param {String} startMsgId Start message id to find. If null, undefined or not valid, get the last message in channel.
-   * @param {String} endMsgId  End message id to find.If null, undefined or not valid, get the first message in channel.
-   * @param {Number} amount Number of message to seach. If null, undefined or not valid, default is 100.
+   * Find message by user, amout: amout to seach messages
+   * @param {{
+   * targetChannel: TextBasedChannel,
+   * targetUser: User,
+   * startMsg: Message,
+   * endMsg: Message,
+   * }} data
    * @returns {Promise<{
-   * messages: Collection<String, Message<Boolean>>,
-   * bulkDeltableMessages: Collection<String, Message<Boolean>>,
-   * userData: Collection<String, { user: User, messages: Message[] }> }>}
+   *  messages: Collection<String, Message<Boolean>>,
+   *  messagesBullkDeletable: Collection<String, Message<Boolean>>,
+   *  userData: Collection<String, {user: User, messages: Array<Message<Boolean>>}>
+   * }>}
    */
-  async findMessages(targetChannel, targetUserId, startMsgId, endMsgId, amount) {
+  async findMessagesByUser(data) {
+    const messages = new Collection();
+    const messagesBullkDeletable = new Collection();
+    const userData = new Collection();
     try {
-      let startMsg, endMsg;
-      startMsgId
-        ? (startMsg = await targetChannel.messages.fetch(startMsgId))
-        : (startMsg = (await targetChannel.messages.fetch({ limit: 1 })).first());
-      endMsgId
-        ? (endMsg = await targetChannel.messages.fetch(endMsgId))
-        : (endMsg = (await targetChannel.messages.fetch({ limit: 1, after: 1 })).first());
-
-      let userData = new Collection();
-      let resutlMessages = new Collection();
-      let resutlBulkDeltableMessages = new Collection();
-      let startFetchMsgId;
       let continueFetching = true;
-      let seachedMessageCounter = 0;
-
-      if (!startMsg) startMsg = await targetChannel.messages.fetch({ limit: 1 }).first();
-
-      checkIsBulkDeletableAndSet(
-        userData,
-        resutlMessages,
-        resutlBulkDeltableMessages,
-        startMsg,
-        targetUserId
-      );
-
-      startFetchMsgId = startMsg.id;
+      let startFetchMsg = data.startMsg;
 
       while (continueFetching) {
-        const fetchAmount = amount - seachedMessageCounter < 100 ? amount - seachedMessageCounter : 100;
-
-        fetchAmount < 100 ? (continueFetching = false) : (continueFetching = true);
-
-        const fetchedMessages = await targetChannel.messages.fetch({
-          limit: fetchAmount,
-          before: startFetchMsgId,
+        const rawMessages = await fetchMessages({
+          startMsg: startFetchMsg,
+          targetChannel: data.targetChannel,
         });
 
-        if (fetchedMessages.size <= 0) return;
+        rawMessages.every((msg) => {
+          if (msg.id < data.endMsg.id) {
+            continueFetching = false;
+            return false;
+          } else if (checkIsRigthUserTarget(msg, data.targetUser)) {
+            msg.bulkDeletable ? messagesBullkDeletable.set(msg.id, msg) : messages.set(msg.id, msg);
+            pushData(msg, userData);
+          }
+          return true;
+        });
 
-        fetchedMessages.every((msg) => {
-          if (resutlMessages.size + resutlBulkDeltableMessages.size < amount) {
-            if ((targetUserId && targetUserId === msg.author.id) || !targetUserId) {
-              if (!msg.bulkDeletable) resutlMessages.set(msg.id, msg);
-              else resutlBulkDeltableMessages.set(msg.id, msg);
-              pushData(msg, userData);
-              if (msg.id === endMsg.id) {
-                continueFetching = false;
-                return false;
-              }
-            }
-            return true;
-          } else {
+        startFetchMsg = rawMessages.last();
+      }
+      return { messages: messages, messagesBullkDeletable: messagesBullkDeletable, userData: userData };
+    } catch (error) {
+      logger.errors.server(`FINDING_MESSAGES_ERROR: ${error}`);
+      return { messages: messages, messagesBullkDeletable: messagesBullkDeletable, userData: userData };
+    }
+  },
+
+  /**
+   * Find message by user, amout: amout to seach messages
+   * @param {{
+   * targetChannel: TextBasedChannel,
+   * amount: Number
+   * }} data
+   *
+   * @returns {Promise<{
+   *  messages: Collection<String, Message<Boolean>>,
+   *  messagesBullkDeletable: Collection<String, Message<Boolean>>,
+   *  userData: Collection<String, Array<Message<Boolean>>>
+   * }>}
+   */
+  async findBotMessages(data) {
+    const messagesBullkDeletable = new Collection();
+    const messages = new Collection();
+    const userData = new Collection();
+
+    try {
+      let continueFetching = true;
+      let counter = 0;
+      let startMsg;
+
+      while (continueFetching) {
+        const rawMessages = await fetchMessages({
+          startMsg: startMsg,
+          targetChannel: data.targetChannel,
+        });
+
+        if (rawMessages.size < 100) continueFetching = false;
+
+        rawMessages.every((msg) => {
+          if (msg.author.bot) {
+            msg.bulkDeletable ? messagesBullkDeletable.set(msg.id, msg) : messages.set(msg.id, msg);
+            pushData(msg, userData);
+          }
+
+          counter += 1;
+
+          if (counter == data.amount) {
             continueFetching = false;
             return false;
           }
+          return true;
         });
 
-        startFetchMsgId = fetchedMessages.last()?.id;
+        startMsg = rawMessages.last();
       }
-
-      return {
-        messages: resutlMessages,
-        bulkDeltableMessages: resutlBulkDeltableMessages,
-        userData: userData,
-      };
+      return { messages: messages, messagesBullkDeletable: messagesBullkDeletable, userData: userData };
     } catch (error) {
-      logger.errors.server(`Error on executing function findMessage: ${error}`);
-      return { messages: [], userData: new Collection() };
+      logger.errors.server(`FINDING_MESSAGES_ERROR: ${error}`);
+      return { messages: messages, messagesBullkDeletable: messagesBullkDeletable };
     }
   },
 };
