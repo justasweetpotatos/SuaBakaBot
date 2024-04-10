@@ -3,7 +3,7 @@ const { NoituChecker } = require("../../../functions/noichu/functions.js");
 
 module.exports = {
   data: {
-    customId: `word-confirm-get-suggestion-btn`,
+    customId: `noitu-confirm-get-suggestion-btn`,
     label: `Confirm`,
     buttonStyle: ButtonStyle.Success,
   },
