@@ -258,7 +258,10 @@ class NoituChecker {
 
     if (!dict[phrase]) {
       const messages = Object.values(this.channelConfig.wrongWordMessages).map((value) => value);
-      await this.noiChuError(message, messages.at(getRandomInt(0, messages[getRandomInt(0, 3)].content)));
+      await this.noiChuError(
+        message,
+        messages.at(getRandomInt(0, messages[getRandomInt(0, messages.length - 1)].content))
+      );
       return false;
     }
 
@@ -276,7 +279,7 @@ class NoituChecker {
     if (this.channelConfig.lastUserId) {
       const messages = Object.values(this.channelConfig.isBeforeUserMessages).map((value) => value);
       if (this.channelConfig.lastUserId === authorId) {
-        await this.noiChuError(message, messages[getRandomInt(0, 3)].content);
+        await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content);
         return false;
       }
     } else return await this.checkPhrase(phrase, message);
@@ -297,7 +300,7 @@ class NoituChecker {
 
     if (!(phrase.split(" ")[0] === lastWord)) {
       const messages = Object.values(this.channelConfig.wrongStartCharMessages).map((value) => value);
-      const content = messages[getRandomInt(0, 3)].content;
+      const content = messages[getRandomInt(0, messages.length - 1)].content;
       await this.noiChuError(message, content.replace(`<replace>`, lastWord));
       return false;
     }
@@ -319,7 +322,7 @@ class NoituChecker {
     if (this.channelConfig.wordUsedList[startWord]) {
       const cache = this.channelConfig.wordUsedList[startWord];
       if (cache[phrase]) {
-        await this.noiChuError(message, messages[getRandomInt(0, 3)].content);
+        await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content);
         return false;
       } else {
         this.channelConfig.wordUsedList[startWord][phrase] = { source: "any" };
