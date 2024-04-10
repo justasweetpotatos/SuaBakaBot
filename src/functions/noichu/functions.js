@@ -62,8 +62,8 @@ class NoichuChecker {
     const dict = require("../../assets/noichuDictionary.json");
 
     if (!dict[word]) {
-      const messages = this.channelConfig.wrongWordMessages;
-      await this.noiChuError(message, messages.at(getRandomInt(0, 2)));
+      const messages = Object.values(this.channelConfig.wrongWordMessages).map(value => (value));
+      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)]);
       return false;
     }
 
@@ -78,11 +78,11 @@ class NoichuChecker {
    * @returns {Promise<Boolean>}
    */
   async checkLastUser(authorId, word, message) {
-    const messages = this.channelConfig.isBeforeUserMessages;
+    const messages = Object.values(this.channelConfig.isBeforeUserMessages).map(value => (value));
 
     if (this.channelConfig.lastUserId) {
       if (this.channelConfig.lastUserId === authorId) {
-        await this.noiChuError(message, messages.default.content);
+        await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content);
         return false;
       }
     } else return await this.checkWord(word, message);
@@ -99,13 +99,13 @@ class NoichuChecker {
   async checkStartChar(word, message) {
     if (!this.channelConfig.lastWord) return await this.checkWord(word, message);
 
-    const messages = this.channelConfig.wrongStartCharMessages;
+    const messages = Object.values(this.channelConfig.wrongStartCharMessages).map(value => (value));
     const lastChar = this.channelConfig.lastWord.charAt(this.channelConfig.lastWord.length - 1);
 
     const e = `Đần, mày phải bắt đầu bằng \`${lastChar}\` chứ :|| !`;
 
     if (!word.startsWith(lastChar)) {
-      await this.noiChuError(message, messages.default.content.replace("<replace>", lastChar));
+      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content.replace("<replace>", lastChar));
       return false;
     }
     return true;
@@ -118,7 +118,7 @@ class NoichuChecker {
    * @returns {Promise<Boolean>}
    */
   async checkIsRepeated(word, message) {
-    const messages = this.channelConfig.isRepeatedWordMessages;
+    const messages = Object.values(this.channelConfig.isRepeatedWordMessages).map(value => (value));
 
     if (!this.channelConfig.wordUsedList) return true;
 
@@ -130,7 +130,7 @@ class NoichuChecker {
     })(this.channelConfig.wordUsedList);
 
     if (object[word]) {
-      await this.noiChuError(message, messages.default.content.replace("<replace>", word));
+      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content);
       return false;
     }
     return true;
