@@ -62,7 +62,7 @@ class NoichuChecker {
     const dict = require("../../assets/noichuDictionary.json");
 
     if (!dict[word]) {
-      const messages = Object.values(this.channelConfig.wrongWordMessages).map((value) => value);
+      const messages = Object.values(this.channelConfig.wrongWordMessages).map(value => (value));
       await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)]);
       return false;
     }
