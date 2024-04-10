@@ -63,7 +63,7 @@ class NoichuChecker {
 
     if (!dict[word]) {
       const messages = Object.values(this.channelConfig.wrongWordMessages).map(value => (value));
-      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content);
+      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)]);
       return false;
     }
 
@@ -78,7 +78,7 @@ class NoichuChecker {
    * @returns {Promise<Boolean>}
    */
   async checkLastUser(authorId, word, message) {
-    const messages = Object.values(this.channelConfig.isBeforeUserMessages).map(value => (value));
+    const messages = Object.values(this.channelConfig.isBeforeUserMessages).map((value) => value);
 
     if (this.channelConfig.lastUserId) {
       if (this.channelConfig.lastUserId === authorId) {
@@ -99,13 +99,16 @@ class NoichuChecker {
   async checkStartChar(word, message) {
     if (!this.channelConfig.lastWord) return await this.checkWord(word, message);
 
-    const messages = Object.values(this.channelConfig.wrongStartCharMessages).map(value => (value));
+    const messages = Object.values(this.channelConfig.wrongStartCharMessages).map((value) => value);
     const lastChar = this.channelConfig.lastWord.charAt(this.channelConfig.lastWord.length - 1);
 
     const e = `Đần, mày phải bắt đầu bằng \`${lastChar}\` chứ :|| !`;
 
     if (!word.startsWith(lastChar)) {
-      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content.replace("<replace>", lastChar));
+      await this.noiChuError(
+        message,
+        messages[getRandomInt(0, messages.length - 1)].content.replace("<replace>", lastChar)
+      );
       return false;
     }
     return true;
@@ -118,7 +121,7 @@ class NoichuChecker {
    * @returns {Promise<Boolean>}
    */
   async checkIsRepeated(word, message) {
-    const messages = Object.values(this.channelConfig.isRepeatedWordMessages).map(value => (value));
+    const messages = Object.values(this.channelConfig.isRepeatedWordMessages).map((value) => value);
 
     if (!this.channelConfig.wordUsedList) return true;
 
@@ -254,11 +257,8 @@ class NoituChecker {
     if (phrase.split(" ").length <= 1) return false;
 
     if (!dict[phrase]) {
-      const messages = this.channelConfig.wrongWordMessages;
-      await this.noiChuError(
-        message,
-        messages.at(getRandomInt(0, this.channelConfig.wrongWordMessages.length))
-      );
+      const messages = Object.values(this.channelConfig.wrongWordMessages).map((value) => value);
+      await this.noiChuError(message, messages.at(getRandomInt(0, messages[getRandomInt(0, 3)].content)));
       return false;
     }
 
@@ -273,11 +273,10 @@ class NoituChecker {
    * @returns {Promise<Boolean>}
    */
   async checkLastUser(authorId, phrase, message) {
-    const messages = this.channelConfig.isBeforeUserMessages;
-
     if (this.channelConfig.lastUserId) {
+      const messages = Object.values(this.channelConfig.isBeforeUserMessages).map((value) => value);
       if (this.channelConfig.lastUserId === authorId) {
-        await this.noiChuError(message, messages.at(getRandomInt(0, 3)));
+        await this.noiChuError(message, messages[getRandomInt(0, 3)].content);
         return false;
       }
     } else return await this.checkPhrase(phrase, message);
@@ -297,7 +296,9 @@ class NoituChecker {
     const lastWord = this.channelConfig.lastWord.split(" ").reverse()[0];
 
     if (!(phrase.split(" ")[0] === lastWord)) {
-      await this.noiChuError(message, `Đần, mày phải bắt đầu bằng \`${lastWord}\` chứ :|| !`);
+      const messages = Object.values(this.channelConfig.wrongStartCharMessages).map((value) => value);
+      const content = messages[getRandomInt(0, 3)].content;
+      await this.noiChuError(message, content.replace(`<replace>`, lastWord));
       return false;
     }
     return true;
@@ -310,7 +311,7 @@ class NoituChecker {
    * @returns {Promise<Boolean>}
    */
   async checkIsRepeated(phrase, message) {
-    const messages = [`Có thằng nối từ này rồi, chọn khác đê !`];
+    const messages = Object.values(this.channelConfig.isBeforeUserMessages).map((value) => value);
 
     if (!this.channelConfig.wordUsedList) return true;
 
@@ -318,7 +319,7 @@ class NoituChecker {
     if (this.channelConfig.wordUsedList[startWord]) {
       const cache = this.channelConfig.wordUsedList[startWord];
       if (cache[phrase]) {
-        await this.noiChuError(message, messages[0]);
+        await this.noiChuError(message, messages[getRandomInt(0, 3)].content);
         return false;
       } else {
         this.channelConfig.wordUsedList[startWord][phrase] = { source: "any" };
