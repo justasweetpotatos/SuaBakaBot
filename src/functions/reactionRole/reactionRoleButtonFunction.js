@@ -1,4 +1,4 @@
-const { Role, Emoji, ButtonStyle, CommandInteraction, EmbedBuilder, Colors, ButtonBuilder } = require("discord.js");
+const { Role, ButtonStyle, CommandInteraction, EmbedBuilder, Colors, ButtonBuilder } = require("discord.js");
 
 module.exports = {
   /**
@@ -74,6 +74,6 @@ module.exports = {
     }
     if (!continue_) return;
 
-    const button = new ButtonBuilder()
+    const button = new ButtonBuilder();
   },
 };

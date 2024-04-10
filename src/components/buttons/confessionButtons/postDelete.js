@@ -9,8 +9,8 @@ const {
 } = require("discord.js");
 const logger = require("../../../utils/logger");
 const { ConfessionPost } = require("../../../functions/confessionSystem/ConfessionFunction");
-const { GuildGlobalConfig } = require("../../../functions/guildConfig/guildGlobalConfig");
 const { autoBuildButton } = require("../../../utils/autoBuild");
+const { GuildConfig } = require("../../../typings");
 
 module.exports = {
   data: {
@@ -31,8 +31,9 @@ module.exports = {
       const post = new ConfessionPost(channelPost.id, "", "", interaction.guildId);
       await post.reSync();
 
-      const guildConfig = new GuildGlobalConfig(interaction.guildId, interaction.guild.name);
-      if (!(await guildConfig.sync())) await guildConfig.update();
+      const guildConfig = new GuildConfig(interaction.guildId, interaction.guild.name);
+      if (!(await interaction.client.guildConfigRepository.sync(guildConfig)))
+        await interaction.client.guildConfigRepository.update(guildConfig);
 
       if (post.authorId !== interaction.user.id) {
         await interaction.editReply({
@@ -57,7 +58,7 @@ module.exports = {
 
       await interaction.editReply({ embeds: [embed], components: [actionRow] });
     } catch (error) {
-      logger.errors.component(`Error on executing button event ${this.data.customId}: ${error}`);
+      logger.errors.component(`EXECUTE_BUTTON_EVENT_ERROR: id>>${this.data.customId}: ${error}`);
     }
   },
 };

@@ -30,7 +30,10 @@ module.exports = {
       await interaction.guild.channels.fetch(targetChannelId)
     );
 
-    if (!status) interaction.message.deletable ? await interaction.message.delete() : "";
+    if (!status) {
+      interaction.message.deletable ? await interaction.message.delete() : "";
+      return;
+    }
 
     const embed = new EmbedBuilder()
       .setTitle(`Bạn có muốn loại kênh nối chữ <#${targetChannelId}> không ?`)

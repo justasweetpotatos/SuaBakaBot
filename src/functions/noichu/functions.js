@@ -1,6 +1,7 @@
 const { EmbedBuilder, Colors, Message } = require("discord.js");
-const { NoichuChannelConfig, GuildConfig, NoituTiengVietChannelConfig } = require(`../../typings/index`);
+const { NoichuChannelConfig, NoituChannelConfig } = require(`../../typings/index`);
 const logger = require("../../utils/logger");
+const { NoichuChannelConfigRepository, NoituChannelConfigRepository } = require("../../database/repository");
 
 /**
  * @param {Number} min
@@ -18,7 +19,7 @@ class NoichuChecker {
     this.guildId = guildId;
     if (!(channelId && guildId)) throw new Error(`NoichuChecker: channelId and guildId required !`);
     this.channelConfig = new NoichuChannelConfig(channelId, guildId);
-    this.guildConfig = new GuildConfig(guildId, "", 1);
+    this.noichuChannelConfigRepository = new NoichuChannelConfigRepository();
   }
 
   /**
@@ -26,11 +27,11 @@ class NoichuChecker {
    */
   async syncConfig() {
     try {
-      if (!(await this.guildConfig.sync())) await this.guildConfig.update();
-      if (!(await this.channelConfig.sync())) return false;
-      return true;
+      return await this.noichuChannelConfigRepository.sync(this.channelConfig);
     } catch (error) {
-      logger.errors.server(`Error on syncing config for NoichuChecker with guild id ${this.guildId}`);
+      logger.errors.server(
+        `NOICHU_SYNC_CONFIG_ERROR: guild>>${this.guildId} channel>>${this.channelId}: ${error}`
+      );
       return false;
     }
   }
@@ -81,7 +82,7 @@ class NoichuChecker {
 
     if (this.channelConfig.lastUserId) {
       if (this.channelConfig.lastUserId === authorId) {
-        await this.noiChuError(message, messages.at(getRandomInt(0, 3)));
+        await this.noiChuError(message, messages.default.content);
         return false;
       }
     } else return await this.checkWord(word, message);
@@ -98,10 +99,13 @@ class NoichuChecker {
   async checkStartChar(word, message) {
     if (!this.channelConfig.lastWord) return await this.checkWord(word, message);
 
+    const messages = this.channelConfig.wrongStartCharMessages;
     const lastChar = this.channelConfig.lastWord.charAt(this.channelConfig.lastWord.length - 1);
 
+    const e = `Đần, mày phải bắt đầu bằng \`${lastChar}\` chứ :|| !`;
+
     if (!word.startsWith(lastChar)) {
-      await this.noiChuError(message, `Đần, mày phải bắt đầu bằng \`${lastChar}\` chứ :|| !`);
+      await this.noiChuError(message, messages.default.content.replace("<replace>", lastChar));
       return false;
     }
     return true;
@@ -114,7 +118,7 @@ class NoichuChecker {
    * @returns {Promise<Boolean>}
    */
   async checkIsRepeated(word, message) {
-    const messages = [`Có thằng nối từ này rồi, chọn khác đê !`];
+    const messages = this.channelConfig.isRepeatedWordMessages;
 
     if (!this.channelConfig.wordUsedList) return true;
 
@@ -126,7 +130,7 @@ class NoichuChecker {
     })(this.channelConfig.wordUsedList);
 
     if (object[word]) {
-      await this.noiChuError(message, messages[0]);
+      await this.noiChuError(message, messages.default.content.replace("<replace>", word));
       return false;
     }
     return true;
@@ -187,7 +191,7 @@ class NoichuChecker {
 
       await this.checkIsReachedMaxWords(message);
 
-      await this.channelConfig.update();
+      await this.noichuChannelConfigRepository.update(this.channelConfig);
     } catch (error) {
       logger.errors.server(`Error on NoichuChecker: ${error}`);
     }
@@ -204,8 +208,8 @@ class NoituChecker {
     this.channelId = channelId;
     this.guildId = guildId;
     if (!(channelId && guildId)) throw new Error(`NoituChecker: channelId and guildId required !`);
-    this.channelConfig = new NoituTiengVietChannelConfig(channelId, guildId);
-    this.guildConfig = new GuildConfig(guildId, "", 1);
+    this.channelConfig = new NoituChannelConfig(channelId, guildId);
+    this.repository = new NoituChannelConfigRepository();
   }
 
   /**
@@ -213,11 +217,11 @@ class NoituChecker {
    */
   async syncConfig() {
     try {
-      if (!(await this.guildConfig.sync())) await this.guildConfig.update();
-      if (!(await this.channelConfig.sync())) return false;
-      return true;
+      return await this.repository.sync(this.channelConfig);
     } catch (error) {
-      logger.errors.server(`Error on syncing config for NoichuChecker with guild id ${this.guildId}`);
+      logger.errors.server(
+        `SYNC_NOITU_CONFIG_ERROR: guild>>${this.guildId} channel>>${this.channelConfig.id}: ${error}`
+      );
       return false;
     }
   }
@@ -403,7 +407,7 @@ class NoituChecker {
 
       return results[getRandomInt(0, results.length - 1)];
     } catch (error) {
-      logger.errors.server(`Error on NoichuChecker: ${error}`);
+      logger.errors.server(`Error on NoituChecker: ${error}`);
     }
   }
 
@@ -435,9 +439,9 @@ class NoituChecker {
       await this.checkIsReachedMaxWords(message);
       await this.checkCanContinue(phrase, message);
 
-      await this.channelConfig.update();
+      await this.repository.update(this.channelConfig);
     } catch (error) {
-      logger.errors.server(`Error on NoichuChecker: ${error}`);
+      logger.errors.server(`Error on NoituChecker: ${error}`);
     }
   }
 }

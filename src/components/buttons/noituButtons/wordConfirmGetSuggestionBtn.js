@@ -1,5 +1,5 @@
 const { ButtonStyle, ButtonInteraction, Client, EmbedBuilder, Colors } = require("discord.js");
-const { NoituChecker } = require("../../../functions/noichu/noichuFunction");
+const { NoituChecker } = require("../../../functions/noichu/functions.js");
 
 module.exports = {
   data: {
@@ -12,7 +12,7 @@ module.exports = {
    *
    * @param {ButtonInteraction} interaction
    * @param {Client} client
-   * @param {*} execute
+   * @param {Function} execute
    */
   async execute(interaction, client, execute) {
     const beforeInteractionMessage = interaction.message;

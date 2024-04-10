@@ -1,13 +1,14 @@
 const logger = require("../../utils/logger");
-const { NoichuChecker, NoituChecker } = require("../../functions/noichu/noichuFunction");
+const { Message, Client } = require("discord.js");
+const { NoichuChecker, NoituChecker } = require("../../functions/noichu/functions");
 
 module.exports = {
   name: "messageCreate",
   once: false,
   /**
    *
-   * @param {import('discord.js').Message} message
-   * @param {import('discord.js'.Client)} client
+   * @param {Message} message
+   * @param {Client} client
    */
   async execute(message, client) {
     try {

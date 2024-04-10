@@ -10,11 +10,11 @@ const {
   ActionRowBuilder,
 } = require("discord.js");
 const logger = require("../../../utils/logger");
-const { GuildGlobalConfig } = require("../../../functions/guildConfig/guildGlobalConfig");
 const {
   ConfessionPost,
   ConfesisonPostChannelManager,
 } = require("../../../functions/confessionSystem/ConfessionFunction");
+const { GuildConfig } = require("../../../typings");
 
 module.exports = {
   data: {
@@ -39,8 +39,9 @@ module.exports = {
       const postChannelManager = new ConfesisonPostChannelManager(channelPost.parentId, channelPost.guildId);
       await postChannelManager.sync();
 
-      const guildConfig = new GuildGlobalConfig(interaction.guildId, interaction.guild.name);
-      if (!(await guildConfig.sync())) await guildConfig.update();
+      const guildConfig = new GuildConfig(interaction.guildId, interaction.guild.name);
+      if (!(await interaction.client.guildConfigRepository.sync(guildConfig)))
+        await interaction.client.guildConfigRepository.update(guildConfig);
 
       if (post.authorId !== interaction.user.id) {
         await interaction.editReply({
@@ -104,7 +105,7 @@ module.exports = {
         });
       });
     } catch (error) {
-      logger.errors.component(`Error on executing button event ${this.data.customId}: ${error}`);
+      logger.errors.component(`EXECUTE_BUTTON_EVENT_ERROR: id>>${this.data.customId}: ${error}`);
     }
   },
 };

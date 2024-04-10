@@ -1,13 +1,11 @@
 const {
-  ActionRowBuilder,
-  EmbedBuilder,
+  CommandInteraction,
   SlashCommandSubcommandBuilder,
   SlashCommandChannelOption,
-  Colors,
   ChannelType,
+  Client,
 } = require("discord.js");
-const { autoBuildChannelMenu, autoBuildButton } = require("../../utils/autoBuild");
-const { NoichuChannelManager } = require("../../functions/noichu/manager");
+const { NoichuChannelManager, NoichuGuildManager } = require("../../functions/noichu/manager");
 
 module.exports = {
   data: new SlashCommandSubcommandBuilder()
@@ -21,30 +19,20 @@ module.exports = {
     ),
 
   /**
-   * @param {import('discord.js').CommandInteraction} interaction
-   * @param {import('discord.js').Client} client
+   * @param {CommandInteraction} interaction
+   * @param {Client} client
    */
   async execute(interaction, client) {
     await interaction.deferReply({ ephemeram: false });
-
-    const targetChannel = interaction.options.get(`channel`).channel;
+    const targetChannel = interaction.options.get(`channel`)?.channel;
 
     if (!targetChannel) {
-      const selectChannelMenu = autoBuildChannelMenu(client.selectMenus.get(`noichu-channel-selector`).data);
-
-      const actionRow1 = new ActionRowBuilder().addComponents(selectChannelMenu);
-      const actionRow2 = new ActionRowBuilder();
-      const embed = new EmbedBuilder()
-        .setTitle(`Cài đặt game nối chữ !`)
-        .setDescription(`*Chọn một kênh để bắt đầu !*`)
-        .setColor(Colors.Blurple);
-      const closeButton = autoBuildButton(client.buttons.get(`noichu-close-message-btn`).data);
-      actionRow2.addComponents([closeButton]);
-
-      await interaction.editReply({ embeds: [embed], components: [actionRow1, actionRow2] });
+      await new NoichuGuildManager(interaction.guild, targetChannel).sendMenuSelector(interaction);
       return;
     }
 
-    const manager = new NoichuChannelManager(interaction.guild, targetChannel);
+    const channelManager = new NoichuChannelManager(interaction.guild, targetChannel);
+    if (!(await channelManager.checkConfigIsAvailable(interaction, false))) return;
+    else await channelManager.sendSettingEditInterface(interaction);
   },
 };

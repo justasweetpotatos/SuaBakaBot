@@ -1,12 +1,4 @@
-const {
-  User,
-  Message,
-  Collection,
-  TextChannel,
-  ThreadChannel,
-  VoiceChannel,
-  TextBasedChannel,
-} = require("discord.js");
+const { User, Message, Collection, TextBasedChannel } = require("discord.js");
 const logger = require("../../utils/logger");
 
 /**
@@ -24,7 +16,7 @@ function pushData(message, userDataCollection) {
       ? userData.messages.push(message)
       : userDataCollection.set(message.author.id, { user: message.author, messages: [message] });
   } catch (error) {
-    logger.errors.server(`SEACHING_MESSAGE_PUSH_USER_DATA_EVENT_ERROR: ${error}`);
+    logger.errors.server(`SEACHING_MESSAGE_PUSH_USER_DATA_ERROR: ${error}`);
   }
 }
 
@@ -96,7 +88,7 @@ module.exports = {
       }
       return { messages: messages, messagesBullkDeletable: messagesBullkDeletable, userData: userData };
     } catch (error) {
-      logger.errors.server(`FINDING_MESSAGES_ERROR: ${error}`);
+      logger.errors.server(`FIND_MESSAGES_ERROR: ${error}`);
       return { messages: messages, messagesBullkDeletable: messagesBullkDeletable, userData: userData };
     }
   },
@@ -151,7 +143,7 @@ module.exports = {
       }
       return { messages: messages, messagesBullkDeletable: messagesBullkDeletable, userData: userData };
     } catch (error) {
-      logger.errors.server(`FINDING_MESSAGES_ERROR: ${error}`);
+      logger.errors.server(`FIND_MESSAGES_ERROR: ${error}`);
       return { messages: messages, messagesBullkDeletable: messagesBullkDeletable };
     }
   },

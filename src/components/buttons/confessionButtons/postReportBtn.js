@@ -12,7 +12,7 @@ const {
 } = require("discord.js");
 const logger = require("../../../utils/logger");
 const { ConfessionPost } = require("../../../functions/confessionSystem/ConfessionFunction");
-const { GuildGlobalConfig } = require("../../../functions/guildConfig/guildGlobalConfig");
+const { GuildConfig } = require("../../../typings");
 
 module.exports = {
   data: {
@@ -30,11 +30,11 @@ module.exports = {
       const channelPost = interaction.channel;
 
       const post = new ConfessionPost(channelPost.id, "", "", interaction.guildId);
-
       await post.reSync();
 
-      const guildConfig = new GuildGlobalConfig(interaction.guildId, interaction.guild.name);
-      if (!(await guildConfig.sync())) await guildConfig.update();
+      const guildConfig = new GuildConfig(interaction.guildId, interaction.guild.name);
+      if (!(await interaction.client.guildConfigRepository.sync(guildConfig)))
+        await interaction.client.guildConfigRepository.update(guildConfig);
 
       if (!guildConfig.reportChannelId) {
         await interaction.reply({

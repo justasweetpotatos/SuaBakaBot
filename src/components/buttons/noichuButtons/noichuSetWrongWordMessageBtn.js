@@ -19,7 +19,7 @@ module.exports = {
     const targetChannelId = configMessage.embeds[0].title.match(/\d+/)[0];
     const channelConfig = new NoichuChannelConfig(targetChannelId, interaction.guildId);
 
-    if (!(await channelConfig.sync())) {
+    if (!(await client.noichuChannelConfigRepository.sync(channelConfig))) {
       const messageEmbed = new EmbedBuilder().setTitle(`Config doesn't exist !`).setColor(Colors.Red);
       await configMessage.delete();
       await interaction.editReply({ embeds: [messageEmbed] });

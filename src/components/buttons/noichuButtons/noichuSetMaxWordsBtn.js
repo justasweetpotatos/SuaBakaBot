@@ -9,7 +9,6 @@ const {
   Colors,
   EmbedBuilder,
 } = require("discord.js");
-const { NoichuChannelConfig } = require("../../../typings");
 const { NoichuChannelManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
@@ -25,32 +24,31 @@ module.exports = {
    */
   async execute(interaction, client) {
     const embed = interaction.message.embeds[0];
-    const targetChannelId = embed.title.match(/\d+/)[0];
     const targetChannel = await interaction.guild.channels.fetch(embed.title.match(/\d+/)[0]);
 
     const channelManager = new NoichuChannelManager(interaction.guild, targetChannel);
-    if (!(await channelManager.checkConfigIsAvailable(interaction))) {
+    if (!(await channelManager.checkConfigIsAvailable(interaction, true))) {
       await interaction.message.delete();
       return;
     }
 
     const amoutInput = new TextInputBuilder()
       .setCustomId(`amout-input`)
-      .setLabel(`Config for chanenl id: ${targetChannelId}`)
+      .setLabel(`Config for chanenl id: ${targetChannel.id}`)
       .setPlaceholder(`Giới hạn số từ có thể chơi trong kênh trước khi reset !`)
       .setStyle(TextInputStyle.Short);
 
     const actionRow = new ActionRowBuilder().addComponents(amoutInput);
 
     const modal = new ModalBuilder()
-      .setCustomId(`noichu-max-words-modal-${targetChannelId}`)
+      .setCustomId(`noichu-max-words-modal-${targetChannel.id}`)
       .setTitle(`Nhập số lượng`)
       .addComponents(actionRow);
 
     await interaction.showModal(modal);
 
     await interaction.awaitModalSubmit({ time: 60_000 }).then(async (modalInteraction) => {
-      if (modalInteraction.customId !== `noichu-max-words-modal-${targetChannelId}`) return;
+      if (modalInteraction.customId !== `noichu-max-words-modal-${targetChannel.id}`) return;
       const amount = modalInteraction.fields.getTextInputValue(`amout-input`);
 
       if (!/^\d+$/.test(amount)) {

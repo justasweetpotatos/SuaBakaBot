@@ -7,7 +7,7 @@ const {
   ActionRowBuilder,
   Colors,
 } = require("discord.js");
-const { NoituTiengVietChannelConfig } = require("../../typings");
+const { NoituChannelConfig } = require("../../typings");
 const { autoBuildButton } = require("../../utils/autoBuild");
 
 module.exports = {
@@ -20,7 +20,7 @@ module.exports = {
   async execute(interaction, client) {
     await interaction.deferReply({ fetchReply: true });
 
-    const channelConfig = new NoituTiengVietChannelConfig(interaction.channel.id, interaction.guild.id);
+    const channelConfig = new NoituChannelConfig(interaction.channel.id, interaction.guild.id);
     if (!(await channelConfig.sync())) {
       await interaction.editReply({
         embeds: [

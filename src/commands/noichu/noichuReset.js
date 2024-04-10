@@ -19,8 +19,7 @@ module.exports = {
    * @param {CommandInteraction} interaction
    */
   async execute(interaction, client) {
-    await new NoichuChannelManager(interaction.guild, interaction.options.get(`channel`).channel).reset(
-      interaction
-    );
+    const targetChannel = interaction.options.get(`channel`).channel;
+    await new NoichuChannelManager(interaction.guild, targetChannel).reset(interaction);
   },
 };

@@ -1,6 +1,5 @@
 const { Client, Guild } = require("discord.js");
-const logger = require("../../utils/logger");
-const { GuildDBInitial } = require("../../utils/initial/createGuildDB");
+const { GuildConfig } = require("../../typings");
 
 module.exports = {
   name: "guildCreate",
@@ -10,7 +9,7 @@ module.exports = {
    * @param {Client} client
    */
   async execute(guild, client) {
-    const guildDBInitial = new GuildDBInitial(guild.id);
-    if (!(await guildDBInitial.isExistDB())) await guildDBInitial.createGuildDB();
+    const config = new GuildConfig(guild.id, guild.name);
+    if (!(await client.guildConfigRepository.sync(config))) client.guildConfigRepository.createDB(config);
   },
 };

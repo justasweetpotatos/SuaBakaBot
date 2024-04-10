@@ -11,6 +11,7 @@ module.exports = {
    * @param {import('discord.js').Interaction} interaction
    */
   async execute(interaction, client) {
-    await new NoichuGuildManager(interaction.guild).setChannel(interaction, interaction.channel);
+    const targetChannel = interaction.channel;
+    await new NoichuGuildManager(interaction.guild).setChannel(interaction, targetChannel);
   },
 };

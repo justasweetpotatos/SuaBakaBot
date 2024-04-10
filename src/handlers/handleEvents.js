@@ -1,6 +1,11 @@
 const fs = require("fs");
 const logger = require("../utils/logger");
+const { Client } = require("discord.js");
 
+/**
+ *
+ * @param {Client} client
+ */
 module.exports = (client) => {
   client.handleEvents = async () => {
     logger.log.eventRegiter(`Handling events progress...`);

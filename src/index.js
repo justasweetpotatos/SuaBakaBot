@@ -4,6 +4,7 @@ const { Client, Collection, GatewayIntentBits, REST } = require("discord.js");
 const fs = require("fs");
 const logger = require("./utils/logger");
 const { AuthSessionManager } = require("./functions/discordAuth/session/sessionManager");
+const { NoichuChannelConfigRepository, GuildConfigRepository } = require("./database/repository");
 
 const client = new Client({
   intents: [
@@ -50,6 +51,9 @@ client.authSessionManager = new AuthSessionManager();
 (async () => {
   await client.authSessionManager.syncPlayerProfiles();
 })();
+
+client.noichuChannelConfigRepository = new NoichuChannelConfigRepository();
+client.guildConfigRepository = new GuildConfigRepository();
 
 client.handleEvents();
 client.handleCommands();

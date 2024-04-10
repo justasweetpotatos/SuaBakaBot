@@ -1,4 +1,4 @@
-const { ChannelType, Client } = require("discord.js");
+const { ChannelType, Client, ChannelSelectMenuInteraction } = require("discord.js");
 const { NoichuChannelManager } = require("../../../functions/noichu/manager");
 
 module.exports = {
@@ -9,7 +9,7 @@ module.exports = {
   },
   /**
    *
-   * @param {import("discord.js").ChannelSelectMenuInteraction} interaction
+   * @param {ChannelSelectMenuInteraction} interaction
    * @param {Client} client
    */
   async execute(interaction, client) {

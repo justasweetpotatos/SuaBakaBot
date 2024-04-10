@@ -9,11 +9,13 @@ const {
   EmbedBuilder,
   Colors,
   ActionRowBuilder,
+  TextBasedChannel,
 } = require("discord.js");
 const logger = require("../../utils/logger");
 const { NoichuChannelConfig, GuildConfig } = require("../../typings");
 const { sendNotificationEmbedMessage, MessageWarnLevel, sendEmbedMsssage } = require("../../utils/message");
-const { autoBuildButton } = require("../../utils/autoBuild");
+const { autoBuildButton, autoBuildChannelMenu } = require("../../utils/autoBuild");
+const { NoichuChannelConfigRepository, GuildConfigRepository } = require("../../database/repository");
 
 class NoichuGuildManager {
   /**
@@ -23,7 +25,8 @@ class NoichuGuildManager {
   constructor(guild) {
     this.guild = guild;
     if (!guild) throw new Error(`CREATE_VARIABLE_ERROR: No guild was given !`);
-    // if (!channel instanceof TextChannel) throw new Error(`CREATE_VARIABLE_ERROR: Wrong channel type !`);
+    this.guildRepository = new GuildConfigRepository();
+    this.channelRepository = new NoichuChannelConfigRepository();
   }
 
   /**
@@ -39,7 +42,7 @@ class NoichuGuildManager {
         parent: category ? category : null,
       });
 
-      if (!(await this.createConfig())) {
+      if (!(await this.createConfig(channel))) {
         await channel.delete();
         await sendNotificationEmbedMessage(
           interaction,
@@ -87,7 +90,7 @@ class NoichuGuildManager {
       const config = new NoichuChannelConfig(channel.id, interaction.guildId);
 
       // Kiểm tra trùng kênh
-      if (await config.sync()) {
+      if (await this.channelRepository.sync(config)) {
         await sendNotificationEmbedMessage(
           interaction,
           undefined,
@@ -95,17 +98,15 @@ class NoichuGuildManager {
           MessageWarnLevel.WARNING,
           true
         );
-
-        await interaction.editReply({ embeds: [embed] });
         return false;
       }
 
       // Kiểm tra số lượng kênh
       const guildConfig = new GuildConfig(interaction.guildId);
-      const maxDefault = 1;
       if (
-        !(await guildConfig.sync()) ||
-        guildConfig.limOfNoichuChannel >= guildConfig.getNumberOfNoichuChannelInGuild()
+        !(await this.guildRepository.sync(guildConfig)) ||
+        guildConfig.limOfNoichuChannel >=
+          (await this.guildRepository.getNumberOfNoichuChannelInGuild(guildConfig))
       ) {
         await sendNotificationEmbedMessage(
           interaction,
@@ -117,7 +118,7 @@ class NoichuGuildManager {
         return false;
       }
 
-      const status = await config.update();
+      const status = await this.channelRepository.update(config);
 
       await sendNotificationEmbedMessage(
         interaction,
@@ -149,6 +150,26 @@ class NoichuGuildManager {
 
   /**
    *
+   * @param {CommandInteraction | ButtonInteraction} interaction
+   */
+  async sendMenuSelector(interaction) {
+    const client = interaction.client;
+    const selectChannelMenu = autoBuildChannelMenu(client.selectMenus.get(`noichu-channel-selector`).data);
+
+    const actionRow1 = new ActionRowBuilder().addComponents(selectChannelMenu);
+    const actionRow2 = new ActionRowBuilder();
+    const embed = new EmbedBuilder()
+      .setTitle(`Cài đặt game nối chữ !`)
+      .setDescription(`*Chọn một kênh để bắt đầu !*`)
+      .setColor(Colors.Blurple);
+    const closeButton = autoBuildButton(client.buttons.get(`noichu-close-message-btn`).data);
+    actionRow2.addComponents([closeButton]);
+
+    await interaction.editReply({ embeds: [embed], components: [actionRow1, actionRow2] });
+  }
+
+  /**
+   *
    * @param {CommandInteraction | ButtonInteraction | ModalSubmitInteraction} interaction
    * @param {TextChannel} channel
    * @returns {Promise<Boolean>}
@@ -157,20 +178,21 @@ class NoichuGuildManager {
     try {
       const config = new NoichuChannelConfig(channel.id, this.guild.id);
 
-      if (!(await config.sync())) {
-        interaction.deferred ? await interaction.deferReply({ fetchReply: true }) : "";
+      if (!(await this.channelRepository.sync(config))) {
+        interaction.deferred ? "" : await interaction.deferReply({ fetchReply: true });
 
-        const embed = new EmbedBuilder()
-          .setTitle(`Thao tác thất bại !`)
-          .setColor(Colors.Red)
-          .setDescription(`*Config doesn't exist !*`)
-          .setTimestamp(new Date().getTime());
+        await sendNotificationEmbedMessage(
+          interaction,
+          undefined,
+          `*Config doesn't exist !*`,
+          MessageWarnLevel.WARNING,
+          true
+        );
 
-        const message = await interaction.editReply({ embeds: [embed] });
-        setTimeout(async () => (message.deletable ? await message.delete() : ""), 5000);
+        return false;
       }
 
-      await config.delete();
+      await this.channelRepository.delete(config);
 
       await sendNotificationEmbedMessage(
         interaction,
@@ -183,7 +205,7 @@ class NoichuGuildManager {
       return true;
     } catch (error) {
       logger.errors.guild(
-        `UNSET_NOICHU_CHANNEL_ERROR: guild>>${this.guild.id} channel>>${this.channel.id}: ${error}`
+        `UNSET_NOICHU_CHANNEL_ERROR: guild>>${this.guild.id} channel>>${channel.id}: ${error}`
       );
       return false;
     }
@@ -191,13 +213,13 @@ class NoichuGuildManager {
 
   /**
    *
+   * @param {TextBasedChannel} channel
    * @returns {Promise<Boolean>}
    */
-  async createConfig() {
+  async createConfig(channel) {
     try {
-      const config = new NoichuChannelConfig(this.channel.id, this.channel.guildId);
-      if (await config.sync()) return false;
-      else return await config.update();
+      const config = new NoichuChannelConfig(channel.id, this.guild.id);
+      return await this.channelRepository.update(config);
     } catch (error) {
       logger.errors.guild(
         `CREATE_NOICHU_CONFIG_ERROR: guild>>${this.channel.guildId} channel>>${this.channel.id}: ${error}`
@@ -217,21 +239,25 @@ class NoichuChannelManager {
     this.guild = guild;
     this.channel = channel;
     this.channelConfig = new NoichuChannelConfig(this.channel.id, this.guild.id);
+    this.channelRepository = new NoichuChannelConfigRepository();
   }
 
   /**
    *
    * @param {CommandInteraction | ButtonInteraction} interaction
+   * @param {Boolean} sendNotification
    */
-  async checkConfigIsAvailable(interaction) {
-    if (!(await this.channelConfig.sync())) {
-      await sendNotificationEmbedMessage(
-        interaction,
-        undefined,
-        `Không phải kênh Nối chữ !`,
-        MessageWarnLevel.WARNING,
-        false
-      );
+  async checkConfigIsAvailable(interaction, sendNotification) {
+    if (!(await this.channelRepository.sync(this.channelConfig))) {
+      sendNotification
+        ? await sendNotificationEmbedMessage(
+            interaction,
+            undefined,
+            `Không phải kênh Nối chữ !`,
+            MessageWarnLevel.WARNING,
+            false
+          )
+        : "";
       return false;
     }
     return true;
@@ -244,7 +270,7 @@ class NoichuChannelManager {
    * @returns {Promise<Boolean>}
    */
   async checkStatusAndResponse(interaction, messageContent) {
-    if (!(await this.channelConfig.update())) {
+    if (!(await this.channelRepository.update(this.channelConfig))) {
       await sendNotificationEmbedMessage(
         interaction,
         undefined,
@@ -269,9 +295,10 @@ class NoichuChannelManager {
    *
    * @param {CommandInteraction | ButtonInteraction} interaction
    * @param {TextChannel} channel
+   * @returns {Promise<Boolean>}
    */
   async reset(interaction) {
-    if (!(await this.checkConfigIsAvailable(interaction))) return;
+    if (!(await this.checkConfigIsAvailable(interaction, true))) return false;
 
     this.channelConfig.lastWord = "";
     this.channelConfig.lastUserId = "";
@@ -301,32 +328,36 @@ class NoichuChannelManager {
    * @returns {Promise<Boolean>}
    */
   async setLimit(interaction, amout) {
-    if (!(await this.checkConfigIsAvailable(interaction))) return;
+    if (!(await this.checkConfigIsAvailable(interaction, true))) return;
 
-    const oldConfig = this.channelConfig;
+    const oldLimit = this.channelConfig.limit;
     this.channelConfig.limit = amout;
 
-    return await this.checkStatusAndResponse(
-      interaction,
-      `Giới hạn đã đổi: ${oldConfig.limit} => ${this.channelConfig.limit}`
-    );
+    return await this.checkStatusAndResponse(interaction, `Giới hạn đã đổi: ${oldLimit} => ${amout}`);
   }
 
   /**
    *
-   * @param {CommandInteraction | ButtonInteraction} interaction
+   * @param {ButtonInteraction} interaction
+   * @returns {Promise<Boolean>}
    */
   async setRepeated(interaction) {
-    if (!(await this.checkConfigIsAvailable(interaction))) return;
+    if (!(await this.checkConfigIsAvailable(interaction, true))) return false;
+
+    const configMessage = interaction.message;
 
     this.channelConfig.repeated === 1
       ? (this.channelConfig.repeated = -1)
       : (this.channelConfig.repeated = 1);
 
-    return await this.checkStatusAndResponse(
+    const status = await this.checkStatusAndResponse(
       interaction,
       `Đã set luật chơi \`repeated\`: ${this.channelConfig.repeated === 1 ? "✅" : "❌"}`
     );
+
+    await configMessage.edit({ embeds: [this.channelConfig.createConfigEmbed()] });
+
+    return status;
   }
 
   /**
@@ -334,20 +365,20 @@ class NoichuChannelManager {
    * @param {CommandInteraction | ButtonInteraction} interaction
    */
   async sendSettingEditInterface(interaction) {
+    interaction.deferred ? "" : await interaction.deferReply({ fetchReply: true });
     const client = interaction.client;
 
-    if (!(await this.checkConfigIsAvailable(interaction))) {
+    if (!(await this.checkConfigIsAvailable(interaction, false))) {
       const embed = new EmbedBuilder()
-        .setTitle(`Bạn có muốn set kênh <#${channelConfig.id}> để chơi nối chữ không ?`)
+        .setTitle(`Bạn có muốn set kênh <#${this.channelConfig.id}> để chơi nối chữ không ?`)
         .setColor(Colors.Yellow);
 
       const setButton = autoBuildButton(client.buttons.get(`noichu-set-btn`).data);
       const closeButton = autoBuildButton(client.buttons.get(`noichu-close-message-btn`).data);
       const actionRow = new ActionRowBuilder().addComponents([setButton, closeButton]);
 
-      interaction.deferred
-        ? await interaction.editReply({ embeds: [embed], components: [actionRow] })
-        : await interaction.channel.send({ embeds: [embed], components: [actionRow] });
+      interaction.deferred ? "" : await interaction.deferReply({ ephemeral: false });
+      await interaction.editReply({ embeds: [embed], components: [actionRow] });
     } else {
       const removeButton = autoBuildButton(client.buttons.get(`noichu-remove-channel-btn`).data);
       const setMaxWordsButton = autoBuildButton(client.buttons.get(`noichu-set-max-words`).data);
@@ -360,15 +391,10 @@ class NoichuChannelManager {
         closeButton,
       ]);
 
-      interaction.deferred
-        ? await interaction.editReply({
-            embeds: [await this.channelConfig.createConfigEmbed()],
-            components: [actionRow],
-          })
-        : await interaction.channel.send({
-            embeds: [await this.channelConfig.createConfigEmbed()],
-            components: [actionRow],
-          });
+      await interaction.editReply({
+        embeds: [await this.channelConfig.createConfigEmbed()],
+        components: [actionRow],
+      });
     }
   }
 }

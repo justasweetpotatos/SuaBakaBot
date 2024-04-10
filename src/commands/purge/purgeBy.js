@@ -67,7 +67,7 @@ module.exports = {
       for (const item of result.userData) {
         fields.push({
           name: "-",
-          value: `**${item[1].user.id}: ${item[1].messages.length}**`,
+          value: `**${item[1].user.globalName}: ${item[1].messages.length}**`,
           inline: false,
         });
       }
