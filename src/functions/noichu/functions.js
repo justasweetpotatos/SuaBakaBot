@@ -258,10 +258,8 @@ class NoituChecker {
 
     if (!dict[phrase]) {
       const messages = Object.values(this.channelConfig.wrongWordMessages).map((value) => value);
-      await this.noiChuError(
-        message,
-        messages.at(getRandomInt(0, messages[getRandomInt(0, messages.length - 1)].content))
-      );
+      const content = messages[getRandomInt(0, messages.length - 1)].content
+      await this.noiChuError(message, content);
       return false;
     }
 
