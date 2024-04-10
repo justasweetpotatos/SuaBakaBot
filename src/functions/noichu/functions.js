@@ -63,7 +63,7 @@ class NoichuChecker {
 
     if (!dict[word]) {
       const messages = Object.values(this.channelConfig.wrongWordMessages).map(value => (value));
-      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)]);
+      await this.noiChuError(message, messages[getRandomInt(0, messages.length - 1)].content);
       return false;
     }
 
