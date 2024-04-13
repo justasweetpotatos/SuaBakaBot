@@ -32,7 +32,7 @@ class MessageWarnLevel {
  * @param {String} content
  * @param {MessageWarnLevel} messageWarnLevel
  * @param {Boolean} ephemeral
- * @param {Boolean} deleteMessage
+ * @param {Boolean} delMessage
  */
 async function sendNotificationEmbedMessage(
   interaction,
@@ -40,7 +40,7 @@ async function sendNotificationEmbedMessage(
   content,
   messageWarnLevel,
   ephemeral,
-  deleteMessage
+  delMessage
 ) {
   let embedColor, embedTitle;
 
@@ -75,12 +75,12 @@ async function sendNotificationEmbedMessage(
       interaction.deferred ? "" : await interaction.deferReply({ ephemeral: ephemeral });
       if (!ephemeral) {
         const message = await interaction.editReply({ embeds: [embed] });
-        if (deleteMessage) await deleteMessage(message, 5000);
+        if (delMessage) await deleteMessage(message, 5000);
       }
       await interaction.editReply({ embeds: [embed] });
     } else if (channel) {
       const message = await channel.send({ embeds: [embed] });
-      if (deleteMessage) await deleteMessage(message, 5000);
+      if (delMessage) await deleteMessage(message, 5000);
     }
   } catch (error) {
     logger.errors.server(`DELETE_MESSAGE_ERROR: ${error}`);
@@ -98,7 +98,7 @@ async function sendNotificationEmbedMessage(
  * @param {Colors} color
  * @param {Boolean} setCreatedTimestamp
  * @param {Booleans} ephemeral
- * @param {Boolean} deleteMessage
+ * @param {Boolean} delMessage
  * @returns {Promise<VoidFunction>}
  */
 async function sendEmbedMsssage(
@@ -110,7 +110,7 @@ async function sendEmbedMsssage(
   color,
   setCreatedTimestamp,
   ephemeral,
-  deleteMessage
+  delMessage
 ) {
   const embed = new EmbedBuilder({
     title: title,
@@ -126,11 +126,11 @@ async function sendEmbedMsssage(
 
       if (ephemeral) return;
 
-      if (deleteMessage) await deleteMessage(message);
+      if (delMessage) await deleteMessage(message);
     } else if (channel) {
       const message = await channel.send({ embeds: [embed], components: components });
 
-      if (deleteMessage) await deleteMessage(message);
+      if (delMessage) await deleteMessage(message);
     }
   } catch (error) {
     logger.errors.server(error);

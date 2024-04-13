@@ -52,8 +52,12 @@ client.authSessionManager = new AuthSessionManager();
   await client.authSessionManager.syncPlayerProfiles();
 })();
 
+// repositories
 client.noichuChannelConfigRepository = new NoichuChannelConfigRepository();
 client.guildConfigRepository = new GuildConfigRepository();
+
+// moderation
+client.blacklistedUsers = new Collection();
 
 client.handleEvents();
 client.handleCommands();
