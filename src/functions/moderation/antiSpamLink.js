@@ -25,8 +25,8 @@ module.exports = class AntiSpamLink {
 
     if (message.member.roles.highest.position >= bot.roles.highest.position) return;
 
-    if (content.includes("https://discord.gg/")) {
-      if (content.includes("https://discord.gg/5KxmB837QP")) return;
+    if (content.includes("https://discord.gg/") || content.includes("discord.gg/")) {
+      if (content.includes("discord.gg/5KxmB837QP")) return;
       if (!this.client.blacklistedUsers.get(member.id))
         this.client.blacklistedUsers.set(member.id, {
           level: 0,
