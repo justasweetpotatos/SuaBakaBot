@@ -41,16 +41,23 @@ module.exports = {
 
     const chunkedOptions = (() => {
       const res = [];
-      for (let i = 0; i <= options.length; i += 25) res.push(options.slice(i, (i += options.length)));
+      for (let i = 0; i >= 0; i += 25) {
+        if (i+25 > options.length) {
+          res.push(options.slice(i, options.length));
+          break;
+        }
+        res.push(options.slice(i, (i + 25)));
+      }
+        
       return res;
     })();
 
-    const selectMenu = new StringSelectMenuBuilder({})
-      .setCustomId(`minecraft-player-profile-selector`)
-      .setPlaceholder(`Chọn profile có ở đây !`)
+    const selectMenu = new StringSelectMenuBuilder()
+      .setCustomId("minecraft-player-profile-selector")
+      .setPlaceholder("Chọn profile có ở đây !")
       .setMaxValues(1)
       .setMinValues(1)
-      .addOptions(options);
+      .addOptions(chunkedOptions[0]);
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
     const nextButton = autoBuildButton(client.buttons.get(`discord-auth-next-page-profile-btn`).data);

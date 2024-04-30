@@ -22,7 +22,7 @@ module.exports = {
    */
   async execute(interaction, client) {
     const embed = interaction.message.embeds[1];
-    let pageIndex = parseInt(embed.description.replace(/\D/g, ""));
+    let pageIndex = parseInt(embed.title.replace(/\D/g, ""));
 
     const options = [];
     (await client.authSessionManager.getPlayerProfiles()).forEach((profile) => {
@@ -31,15 +31,20 @@ module.exports = {
 
     const chunkedOptions = (() => {
       const res = [];
-      for (let i = 0; i < options.length; i += 25) res.push(options.slice(i, (i += options.length)));
+      for (let i = 0; i >= 0; i += 25) {
+        if (i+25 > options.length) {
+          res.push(options.slice(i, options.length));
+          break;
+        }
+        res.push(options.slice(i, (i + 25)));
+      }
+        
       return res;
     })();
 
-    if (pageIndex >= chunkedOptions.length) {
-      pageIndex = 1;
-    } else {
-      pageIndex += 1;
-    }
+    pageIndex >= chunkedOptions.length
+      ? pageIndex = 1
+      : pageIndex += 1
 
     const selectMenu = new StringSelectMenuBuilder({})
       .setCustomId(`minecraft-player-profile-selector`)
